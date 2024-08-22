@@ -3,7 +3,7 @@ import Logo from '../../../Assets/Logo'
 import { Facebook, Google } from '../../../Assets/LoginRegister'
 import { Link } from 'react-router-dom'
 
-const Login = () => {
+const Register = () => {
     return (
         <main className="dark:bg-dark-custom bg-white-custom min-h-svh flex justify-center items-center">
             <form className="flex items-center flex-col min-w-[330px]">
@@ -26,6 +26,12 @@ const Login = () => {
                     </svg>
                     <input className="dark:bg-gray shadow placeholder:dark:text-white placeholder:opacity-50 placeholder:font-montserrat py-2 ps-10 w-full rounded-md" placeholder="Password" />
                 </div>
+                <div className="w-full relative mt-3">
+                    <svg viewBox="0 0 448 512" className='fill-current dark:text-white opacity-50 w-[15px] absolute top-1/2 -translate-y-1/2 translate-x-3'>
+                        <path d="M144 144l0 48 160 0 0-48c0-44.2-35.8-80-80-80s-80 35.8-80 80zM80 192l0-48C80 64.5 144.5 0 224 0s144 64.5 144 144l0 48 16 0c35.3 0 64 28.7 64 64l0 192c0 35.3-28.7 64-64 64L64 512c-35.3 0-64-28.7-64-64L0 256c0-35.3 28.7-64 64-64l16 0z" />
+                    </svg>
+                    <input className="dark:bg-gray shadow placeholder:dark:text-white placeholder:opacity-50 placeholder:font-montserrat py-2 ps-10 w-full rounded-md" placeholder="Confirm Password" />
+                </div>
                 <a href='#' className='text-dark-yellow dark:text-yellow text-sm self-end mt-2 font-montserrat'>Forgot Password?</a>
                 <button className='bg-yellow w-full py-2 rounded-md mt-5 font-montserrat bg-login-button shadow'>Login</button>
                 <div className='w-full flex justify-between items-center opacity-25 dark:opacity-50 mt-8'>
@@ -45,11 +51,11 @@ const Login = () => {
                 </div>
                 <p className='dark:text-white font-montserrat mt-9'>
                     <span className='opacity-50'>Don't have an account yet? </span>
-                    <Link to='/register' className='text-dark-yellow dark:text-yellow opacity-100'>Register</Link>
+                    <Link to='/login' className='text-dark-yellow dark:text-yellow opacity-100'>Login</Link>
                 </p>
             </form>
         </main>
     )
 }
 
-export default Login
+export default Register
