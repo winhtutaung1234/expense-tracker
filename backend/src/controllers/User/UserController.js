@@ -1,14 +1,12 @@
 const { User } = require("../../models");
 const { Role } = require("../../models");
-const { EmailVerificationToken } = require("../../models");
 const { RefreshToken } = require("../../models");
 
 const asyncHandler = require("express-async-handler");
 const generateAccessAndRefreshTokens = require("../../utils/generateAccessAndRefreshTokens");
 const UserResource = require("../../resources/UserResource");
-const sendEmail = require("../../utils/sendEmail");
-const generateToken = require("../../utils/generateToken");
-const generateEmailVerificationToken = require("../../utils/generateEmailVerificationToken");
+const generateEmailVerificationToken = require("../../utils/emailVerification/generateEmailVerificationToken");
+const sendEmailQueue = require("../../queues/emailQueue");
 
 const include = [Role];
 
@@ -31,56 +29,19 @@ module.exports = {
     return res.json(user);
   }),
 
-  emailVerify: asyncHandler(async (req, res) => {
-    const { user_id, token } = req.query;
-
-    const emailVerifyToken = await EmailVerificationToken.findOne({
-      where: { user_id, token },
-    });
-
-    if (!emailVerifyToken) {
-      return res.status(400).json({
-        msg: "Invalid credentials",
-      });
-    }
-
-    if (Date.now() > new Date(emailVerifyToken.expires_at).getTime()) {
-      await emailVerifyToken.destroy();
-
-      return res.status(400).json({
-        msg: "Email verify token expired",
-      });
-    }
-
-    const user = await User.findByPk(user_id);
-    if (!user) return res.status(404).json({ msg: "User not found" });
-
-    user.email_verified = true;
-    user.email_verified_at = new Date();
-
-    await emailVerifyToken.destroy();
-
-    await user.save();
-
-    return res.json({ msg: "User email verification success" });
-  }),
-
   create: asyncHandler(async (req, res) => {
     const user = await User.register(req.body);
+    const { accessToken, refreshToken } = await generateAccessAndRefreshTokens(
+      user
+    );
 
-    const token = await generateToken();
-    const url = `http://localhost:8000/api/email-verify?user_id=${user.id}&token=${token}`;
+    const verificationToken = await generateEmailVerificationToken(user.id);
 
-    await generateEmailVerificationToken({ userId: user.id, token });
+    if (verificationToken) {
+      sendEmailQueue.add({ email: user.email, url: verificationToken.url });
 
-    await sendEmail({
-      from: "expensetacker.com",
-      to: user.email,
-      subject: "email verification",
-      url,
-    });
-
-    return res.status(201).json(user);
+      return res.status(201).json({ accessToken, refreshToken });
+    }
   }),
 
   login: asyncHandler(async (req, res) => {
@@ -129,12 +90,6 @@ module.exports = {
     });
   }),
 
-  forgotPassword: asyncHandler(async (req, res) => {
-    const { email } = req.body;
-
-    const user = await User.findOne({ where: { email } });
-  }),
-
   destroy: asyncHandler(async (req, res) => {
     const { id } = req.params;
 
@@ -159,5 +114,21 @@ module.exports = {
     await user.restore();
 
     return res.json({ msg: "User restored successfully" });
+  }),
+
+  logout: asyncHandler(async (req, res) => {
+    const { id } = req.params;
+
+    const user = await User.findOne({ where: { id } });
+
+    if (!user) return res.status(404).json({ msg: "User not found" });
+
+    const refreshToken = await RefreshToken.findOne({
+      where: { user_id: id },
+    });
+
+    await refreshToken.destroy();
+
+    return res.json({ msg: "User logout successfully" });
   }),
 };

@@ -29,14 +29,16 @@ module.exports = (sequelize, DataTypes) => {
       password,
       confirmpassword,
     }) {
-      const userExists = await User.findOne({ where: { email } });
+      const userExists = await User.findOne({
+        where: { email },
+      });
 
       if (userExists) {
-        throw errRespones("User already exists with that email", 400);
+        throw errRespones("User already exists. Please login.", 400);
       }
 
       if (password !== confirmpassword) {
-        throw errRespones("Incorrect password", 400);
+        throw errRespones("Passwords do not match", 400);
       }
 
       const user = await User.create({

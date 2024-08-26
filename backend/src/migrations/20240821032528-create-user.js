@@ -31,7 +31,6 @@ module.exports = {
         type: Sequelize.DATE,
       },
       phone_number: {
-        allowNull: false,
         type: Sequelize.STRING,
         unique: true,
       },

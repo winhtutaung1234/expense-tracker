@@ -15,12 +15,6 @@ const createUserValidation = [
     .notEmpty()
     .withMessage("Email is required"),
 
-  body("phone_number")
-    .isString()
-    .withMessage("Phone number must be a string")
-    .isMobilePhone()
-    .withMessage("Ivalid phone number format"),
-
   body("password")
     .isString()
     .withMessage("Password must be a string")
