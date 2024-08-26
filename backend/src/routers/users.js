@@ -3,6 +3,7 @@ const UserController = require("../controllers/User/UserController");
 const {
   createUserValidation,
   loginUserValidation,
+  refreshValidation,
 } = require("../middlewares/UserMiddleware/userValidation");
 const validator = require("../middlewares/common/validator");
 const validateId = require("../middlewares/common/validateId");
@@ -19,7 +20,12 @@ router.get("/verify", auth, UserController.verify);
 
 router.post("/users", createUserValidation, validator, UserController.create);
 
-router.post("/refresh-token", UserController.refresh);
+router.post(
+  "/refresh-token",
+  refreshValidation,
+  validator,
+  UserController.refresh
+);
 
 router.post("/login", loginUserValidation, validator, UserController.login);
 

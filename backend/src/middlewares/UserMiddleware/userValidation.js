@@ -44,7 +44,12 @@ const loginUserValidation = [
     .withMessage("Password is required"),
 ];
 
+const refreshValidation = [
+  body("user_id").notEmpty().isInt().withMessage("User id must be integer"),
+];
+
 module.exports = {
   createUserValidation,
   loginUserValidation,
+  refreshValidation,
 };

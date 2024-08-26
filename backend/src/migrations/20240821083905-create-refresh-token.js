@@ -12,6 +12,7 @@ module.exports = {
       user_id: {
         allowNull: false,
         type: Sequelize.BIGINT.UNSIGNED,
+        unique: true,
       },
       token: {
         allowNull: false,

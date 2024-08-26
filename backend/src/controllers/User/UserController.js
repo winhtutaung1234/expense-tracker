@@ -7,6 +7,7 @@ const generateAccessAndRefreshTokens = require("../../utils/generateAccessAndRef
 const UserResource = require("../../resources/UserResource");
 const generateEmailVerificationToken = require("../../utils/emailVerification/generateEmailVerificationToken");
 const sendEmailQueue = require("../../queues/emailQueue");
+const setJwtRefreshCookie = require("../../utils/cookies/setJwtRefreshCookie");
 
 const include = [Role];
 
@@ -35,12 +36,14 @@ module.exports = {
       user
     );
 
+    setJwtRefreshCookie(res, refreshToken);
+
     const verificationToken = await generateEmailVerificationToken(user.id);
 
     if (verificationToken) {
       sendEmailQueue.add({ email: user.email, url: verificationToken.url });
 
-      return res.status(201).json({ accessToken, refreshToken });
+      return res.status(201).json({ accessToken });
     }
   }),
 
@@ -51,14 +54,19 @@ module.exports = {
       user
     );
 
-    return res.json({ accessToken, refreshToken });
+    setJwtRefreshCookie(res, refreshToken);
+    return res.json({ accessToken });
   }),
 
   refresh: asyncHandler(async (req, res) => {
-    const { jwt_refresh } = req.body;
+    const { jwt_refresh } = req.cookies;
+    const { user_id } = req.body;
 
     const refresh = await RefreshToken.findOne({
-      refresh_token: jwt_refresh,
+      where: {
+        user_id,
+        token: jwt_refresh,
+      },
     });
 
     if (!refresh) {
@@ -74,19 +82,20 @@ module.exports = {
       });
     }
 
-    const user = await User.findByPk(refresh.user_id);
+    const user = await User.findByPk(user_id);
 
     if (!user) return res.status(400).json({ msg: "User not found" });
+
+    await refresh.destroy();
 
     const { accessToken, refreshToken } = await generateAccessAndRefreshTokens(
       user
     );
 
-    await refresh.destroy();
+    setJwtRefreshCookie(res, refreshToken);
 
     return res.json({
       accessToken,
-      refreshToken,
     });
   }),
 
@@ -128,6 +137,8 @@ module.exports = {
     });
 
     await refreshToken.destroy();
+
+    res.cookie("jwt_refresh", "", { maxAge: 1 });
 
     return res.json({ msg: "User logout successfully" });
   }),

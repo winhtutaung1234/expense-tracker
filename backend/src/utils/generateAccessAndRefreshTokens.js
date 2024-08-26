@@ -4,6 +4,14 @@ const jwt = require("jsonwebtoken");
 const { RefreshToken } = require("../models");
 
 async function generateAccessAndRefreshTokens(user) {
+  const refreshExists = await RefreshToken.findOne({
+    where: { user_id: user.id },
+  });
+
+  if (refreshExists) {
+    throw new Error("Refresh token already exists");
+  }
+
   const accessToken = jwt.sign(
     {
       id: user.id,
