@@ -5,3 +5,25 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+
+:root {
+    /* Light mode colors */
+    --background-color: #ffffff;
+    --gradient-start: #f0f0f0;
+    --gradient-end: #d0d0d0;
+    --text-color: #000000;
+}
+
+html.dark {
+    /* Night mode colors */
+    --background-color: #1E1E1E;
+    --gradient-start: #2B2B2B;
+    --gradient-end: #1E1E1E;
+    --text-color: #ffffff;
+}
+
+body {
+    background: linear-gradient(to bottom right, var(--gradient-start), var(--gradient-end));
+    color: var(--text-color);
+}

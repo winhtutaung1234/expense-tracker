@@ -10,6 +10,8 @@ export default {
       backgroundImage: {
         'dark-custom': 'linear-gradient(to top right, #1E1E1E 0%, #353434 71%, #282828 87%)',
         'white-custom': 'linear-gradient(to top right, #F6F6F6 0%, #FEFEFE 71%, #F2F2F2 87%)',
+        'dark-nav-background': "linear-gradient(45deg, #2F2F2F 0%, #343434 5%, #3E3E3E 6%, #4C4C4C 10%, #2F2F2F 21%)",
+        'nav-border': "linear-gradient(105deg, #FFDC26, #998417)",
         'login-button': 'linear-gradient(105deg, #BEA41C 6%, #FFDC26 45%, #FDE460 69%, #998417 96%)',
       },
       colors: {
