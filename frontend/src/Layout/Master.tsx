@@ -1,11 +1,41 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import { Outlet } from 'react-router-dom'
 import Logo from '../Assets/Logo'
+import Auth from '../Services/Auth/Auth';
 
 const Master = () => {
+    const [showNav, setShowNav] = useState(true);
+    const [lastScrollY, setLastScrollY] = useState(0);
+
+    const controlNav = () => {
+        if (window.scrollY > lastScrollY) {
+            setShowNav(false);
+        } else {
+            setShowNav(true);
+        }
+        setLastScrollY(window.scrollY);
+    };
+
+    useEffect(() => {
+        const handleScroll = () => {
+            controlNav();
+        };
+
+        window.addEventListener('scroll', handleScroll);
+
+        return () => {
+            window.removeEventListener('scroll', handleScroll);
+        };
+    }, [lastScrollY]);
+
+    useEffect(() => {
+        console.log(Auth.login());
+    }, [])
+
+
     return (
         <>
-            <nav className='flex fixed items-center justify-between top-10 left-1/2 -translate-x-1/2 w-[80%] py-4 px-8 rounded-full'>
+            <nav className={`flex fixed items-center justify-between top-10 left-1/2 -translate-x-1/2 w-[80%] py-4 px-8 rounded-full transition-all duration-300 ${showNav ? "opacity-100" : "opacity-0"}`}>
                 <div className='flex z-20'>
                     <img width={60} src={Logo} />
                     <div className='flex flex-col items-center'>
@@ -29,14 +59,15 @@ const Master = () => {
                 </div>
                 <div className='absolute z-10 left-0 bg-dark-nav-background rounded-full w-full h-full'></div>
                 <div className='absolute left-1/2 top-1/2 bg-nav-border rounded-full -translate-x-1/2 -translate-y-1/2' style={{ width: "calc(100% + 1.5px)", height: "calc(100% + 1.5px)" }}></div>
-            </nav>
+            </nav >
+
             <div className='mt-40 flex w-[80%] justify-center'>
                 <div className='flex-[0.75]'>
                     <Outlet />
                 </div>
             </div>
         </>
-    )
+    );
 }
 
-export default Master
+export default Master;
