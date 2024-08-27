@@ -8,6 +8,7 @@ const UserResource = require("../../resources/UserResource");
 const generateEmailVerificationToken = require("../../utils/emailVerification/generateEmailVerificationToken");
 const sendEmailQueue = require("../../queues/emailQueue");
 const setJwtRefreshCookie = require("../../utils/cookies/setJwtRefreshCookie");
+const sendEmail = require("../../utils/sendEmail");
 
 const include = [Role];
 
