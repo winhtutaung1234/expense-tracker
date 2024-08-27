@@ -8,13 +8,22 @@ const UserResource = require("../../resources/UserResource");
 const generateEmailVerificationToken = require("../../utils/emailVerification/generateEmailVerificationToken");
 const sendEmailQueue = require("../../queues/emailQueue");
 const setJwtRefreshCookie = require("../../utils/cookies/setJwtRefreshCookie");
-const sendEmail = require("../../utils/sendEmail");
-
-const bcrypt = require("bcrypt");
 
 const include = [Role];
 
 module.exports = {
+  findAll: asyncHandler(async (req, res) => {
+    const users = await User.findAll({ include });
+    return res.json(UserResource.collection(users));
+  }),
+
+  show: asyncHandler(async (req, res) => {
+    const { id } = req.params;
+
+    const user = await User.findByPk(id, { include });
+    return res.json(new UserResource(user).exec());
+  }),
+
   verify: asyncHandler(async (req, res) => {
     const { user } = req;
 
@@ -32,14 +41,7 @@ module.exports = {
     const verificationToken = await generateEmailVerificationToken(user.id);
 
     if (verificationToken) {
-      // sendEmailQueue.add({ email: user.email, url: verificationToken.url });
-
-      sendEmail({
-        from: "expensetacker.com",
-        to: user.email,
-        subject: "email verification",
-        url: verificationToken.url,
-      });
+      sendEmailQueue.add({ email: user.email, url: verificationToken.url });
 
       return res.status(201).json({ accessToken });
     }
@@ -63,16 +65,11 @@ module.exports = {
     const refresh = await RefreshToken.findOne({
       where: {
         user_id,
+        token: jwt_refresh,
       },
     });
 
     if (!refresh) {
-      return res.status(404).json({
-        msg: "Refresh token not found",
-      });
-    }
-
-    if (!(await bcrypt.compare(jwt_refresh, refresh.token))) {
       return res.status(400).json({
         msg: "Invalid refresh token",
       });
