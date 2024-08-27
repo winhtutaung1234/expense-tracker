@@ -15,18 +15,6 @@ const bcrypt = require("bcrypt");
 const include = [Role];
 
 module.exports = {
-  findAll: asyncHandler(async (req, res) => {
-    const users = await User.findAll({ include });
-    return res.json(UserResource.collection(users));
-  }),
-
-  show: asyncHandler(async (req, res) => {
-    const { id } = req.params;
-
-    const user = await User.findByPk(id, { include });
-    return res.json(new UserResource(user).exec());
-  }),
-
   verify: asyncHandler(async (req, res) => {
     const { user } = req;
 
