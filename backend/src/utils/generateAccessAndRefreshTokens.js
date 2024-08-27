@@ -20,6 +20,7 @@ async function generateAccessAndRefreshTokens(user) {
   const accessToken = jwt.sign(
     {
       id: user.id,
+      role_id: user.role_id,
       name: user.name,
       email: user.email,
       email_verified: user.email_verified,

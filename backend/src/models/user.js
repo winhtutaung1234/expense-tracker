@@ -72,7 +72,7 @@ module.exports = (sequelize, DataTypes) => {
       });
 
       if (!user) {
-        throw errRespones("User not Found", 404);
+        throw errRespones("User not Found. Register first", 401);
       }
 
       if (!(await bcrypt.compare(password, user.password))) {

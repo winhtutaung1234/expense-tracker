@@ -15,7 +15,9 @@ const validateCreateCurrency = [
     .isString()
     .withMessage("Code must be a string")
     .isLength({ min: 3, max: 3 })
-    .withMessage("Code must be exactly 3 characters long"),
+    .withMessage("Code must be exactly 3 characters long")
+    .isUppercase()
+    .withMessage("Code must be in uppercase letters"),
 
   body("symbol")
     .notEmpty()

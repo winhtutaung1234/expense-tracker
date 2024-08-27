@@ -7,18 +7,20 @@ const {
 } = require("../middlewares/UserMiddleware/userValidation");
 const validator = require("../middlewares/common/validator");
 const validateId = require("../middlewares/common/validateId");
-const auth = require("../middlewares/UserMiddleware/auth");
+const auth = require("../middlewares/AuthMiddleware/auth");
 const EmailVerifyController = require("../controllers/User/EmailVerifyController");
 const router = express.Router();
 
-// UserController
-router.get("/users", UserController.findAll);
-
-router.get("/users/:id", validateId, validator, UserController.show);
-
 router.get("/verify", auth, UserController.verify);
 
+// register -> access and refresh tokens
 router.post("/users", createUserValidation, validator, UserController.create);
+
+// login -> access and refresh tokens
+router.post("/login", loginUserValidation, validator, UserController.login);
+
+// logout
+router.post("/logout/:id", UserController.logout);
 
 router.post(
   "/refresh-token",
@@ -27,18 +29,12 @@ router.post(
   UserController.refresh
 );
 
-router.post("/login", loginUserValidation, validator, UserController.login);
-
-router.post("/logout/:id", UserController.logout);
-
 router.patch(
   "/users/:id/restore",
   validateId,
   validator,
   UserController.restore
 );
-
-router.delete("/users/:id", validateId, validator, UserController.destroy);
 
 // EmailVerifyController
 router.get("/email-verify", EmailVerifyController.emailVerify);

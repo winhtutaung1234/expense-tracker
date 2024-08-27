@@ -6,6 +6,8 @@ const { errorHandler } = require("./middlewares/common/errorHandler");
 const cookieParser = require("cookie-parser");
 const { accountsRouter } = require("./routers/accounts");
 const { currenciesRouter } = require("./routers/currencies");
+const auth = require("./middlewares/AuthMiddleware/auth");
+const isAdmin = require("./middlewares/AuthMiddleware/isAdmin");
 
 const server = express();
 
@@ -24,7 +26,7 @@ server.use(cookieParser());
 
 server.use("/api", usersRouter);
 server.use("/api", accountsRouter);
-server.use("/api", currenciesRouter);
+server.use("/api", auth, isAdmin, currenciesRouter);
 
 server.use(errorHandler);
 
