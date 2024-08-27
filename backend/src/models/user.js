@@ -20,6 +20,16 @@ module.exports = (sequelize, DataTypes) => {
         onDelete: "CASCADE",
         foreignKey: "user_id",
       });
+
+      User.hasOne(models.RefreshToken, {
+        onDelete: "CASCADE",
+        foreignKey: "user_id",
+      });
+
+      User.hasMany(models.Account, {
+        foreignKey: "user_id",
+        onDelete: "CASCADE",
+      });
     }
 
     static async register({
@@ -46,6 +56,7 @@ module.exports = (sequelize, DataTypes) => {
         name,
         email,
         phone_number,
+        email_verified: false,
         password: await bcrypt.hash(password, 10),
       });
 
@@ -66,13 +77,6 @@ module.exports = (sequelize, DataTypes) => {
 
       if (!(await bcrypt.compare(password, user.password))) {
         throw errRespones("Incorrect password", 400);
-      }
-
-      if (!user.email_verified) {
-        throw errRespones(
-          "User's email not verified. Please check your email for verification link.",
-          403
-        );
       }
 
       return user;

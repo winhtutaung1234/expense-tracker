@@ -4,6 +4,8 @@ const cors = require("cors");
 const { usersRouter } = require("./routers/users");
 const { errorHandler } = require("./middlewares/common/errorHandler");
 const cookieParser = require("cookie-parser");
+const { accountsRouter } = require("./routers/accounts");
+const { currenciesRouter } = require("./routers/currencies");
 
 const server = express();
 
@@ -21,6 +23,8 @@ server.use(
 server.use(cookieParser());
 
 server.use("/api", usersRouter);
+server.use("/api", accountsRouter);
+server.use("/api", currenciesRouter);
 
 server.use(errorHandler);
 

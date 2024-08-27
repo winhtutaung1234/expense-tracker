@@ -1,0 +1,53 @@
+"use strict";
+
+/** @type {import('sequelize-cli').Migration} */
+module.exports = {
+  async up(queryInterface, Sequelize) {
+    await queryInterface.bulkInsert("currencies", [
+      {
+        name: "United States Dollar",
+        code: "USD",
+        symbol: "$",
+        decimal_places: 2,
+        created_at: new Date(),
+        updated_at: new Date(),
+      },
+      {
+        name: "Euro",
+        code: "EUR",
+        symbol: "€",
+        decimal_places: 2,
+        created_at: new Date(),
+        updated_at: new Date(),
+      },
+      {
+        name: "Japanese Yen",
+        code: "JPY",
+        symbol: "¥",
+        decimal_places: 0,
+        created_at: new Date(),
+        updated_at: new Date(),
+      },
+      {
+        name: "British Pound Sterling",
+        code: "GBP",
+        symbol: "£",
+        decimal_places: 2,
+        created_at: new Date(),
+        updated_at: new Date(),
+      },
+      {
+        name: "Australian Dollar",
+        code: "AUD",
+        symbol: "A$",
+        decimal_places: 2,
+        created_at: new Date(),
+        updated_at: new Date(),
+      },
+    ]);
+  },
+
+  async down(queryInterface, Sequelize) {
+    await queryInterface.bulkDelete("currencies", null, {});
+  },
+};

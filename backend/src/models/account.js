@@ -9,20 +9,31 @@ module.exports = (sequelize, DataTypes) => {
      */
     static associate(models) {
       // define association here
+      Account.belongsTo(models.Currency, {
+        foreignKey: "currency_id",
+        onDelete: "CASCADE",
+      });
+
+      Account.belongsTo(models.User, {
+        foreignKey: "user_id",
+        onDelete: "CASCADE",
+      });
     }
   }
   Account.init(
     {
       user_id: DataTypes.BIGINT.UNSIGNED,
       name: DataTypes.STRING,
-      type: DataTypes.STRING,
       balance: DataTypes.DECIMAL,
-      currency: DataTypes.STRING,
+      currency_id: DataTypes.INTEGER,
       description: DataTypes.TEXT,
     },
     {
       sequelize,
       modelName: "Account",
+      underscored: true,
+      createdAt: "created_at",
+      updatedAt: "updated_at",
     }
   );
   return Account;
