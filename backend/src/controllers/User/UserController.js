@@ -55,6 +55,22 @@ module.exports = {
     );
 
     setJwtRefreshCookie(res, refreshToken);
+
+    const verificationToken = await generateEmailVerificationToken(user.id);
+
+    if (verificationToken) {
+      // sendEmailQueue.add({ email: user.email, url: verificationToken.url });
+
+      sendEmail({
+        from: "expensetacker.com",
+        to: user.email,
+        subject: "email verification",
+        url: verificationToken.url,
+      });
+
+      return res.status(201).json({ accessToken });
+    }
+
     return res.json({ accessToken });
   }),
 
