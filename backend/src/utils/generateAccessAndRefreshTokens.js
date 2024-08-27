@@ -1,15 +1,18 @@
 require("dotenv").config();
 
 const jwt = require("jsonwebtoken");
+const bcrypt = require("bcrypt");
 const { RefreshToken } = require("../models");
 
 async function generateAccessAndRefreshTokens(user) {
+  // check if refresh token already exists
   const refreshExists = await RefreshToken.findOne({
     where: { user_id: user.id },
   });
 
+  // if exists delete it from db
   if (refreshExists) {
-    throw new Error("Refresh token already exists");
+    await RefreshToken.destroy({ where: { user_id: user.id } });
   }
 
   const accessToken = jwt.sign(
@@ -39,7 +42,7 @@ async function generateAccessAndRefreshTokens(user) {
 
   await RefreshToken.create({
     user_id: user.id,
-    token: refreshToken,
+    token: await bcrypt.hash(refreshToken, 10),
     expires_at,
   });
 

@@ -17,7 +17,7 @@ module.exports = (sequelize, DataTypes) => {
   }
   EmailVerificationToken.init(
     {
-      user_id: DataTypes.INTEGER,
+      user_id: DataTypes.BIGINT.UNSIGNED,
       token: DataTypes.STRING,
       expires_at: DataTypes.DATE,
     },
