@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react'
-import { Outlet } from 'react-router-dom'
+import { Outlet, useNavigate } from 'react-router-dom'
 import Logo from '../Assets/Logo'
 import Auth from '../Services/Auth/Auth';
+import api from '../Services/api';
 
 const Master = () => {
     const [showNav, setShowNav] = useState(true);
@@ -27,10 +28,20 @@ const Master = () => {
             window.removeEventListener('scroll', handleScroll);
         };
     }, [lastScrollY]);
+    
+
+    const navigate = useNavigate();
 
     useEffect(() => {
-        console.log(Auth.login());
-    }, [])
+        Auth.getUser().
+            then((data) => {
+                console.log(data)
+            })
+            .catch(() => {
+                return navigate('/login');
+            })
+    }, []);
+
 
 
     return (
