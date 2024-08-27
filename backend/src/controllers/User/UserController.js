@@ -65,8 +65,6 @@ module.exports = {
         subject: "email verification",
         url: verificationToken.url,
       });
-
-      return res.status(201).json({ accessToken });
     }
 
     return res.json({ accessToken });
