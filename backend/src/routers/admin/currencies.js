@@ -1,10 +1,10 @@
 const express = require("express");
-const CurrencyController = require("../controllers/Account/CurrencyController");
+const CurrencyController = require("../../controllers/Account/CurrencyController");
 
-const validator = require("../middlewares/common/validator");
+const validator = require("../../middlewares/common/validator");
 const {
   validateCreateCurrency,
-} = require("../middlewares/CurrencyMiddleware/currencyValidation");
+} = require("../../middlewares/CurrencyMiddleware/currencyValidation");
 const router = express.Router();
 
 router.get("/currencies", CurrencyController.findAll);

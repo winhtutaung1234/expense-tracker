@@ -36,6 +36,10 @@ async function auth(req, res, next) {
   try {
     const user = jwt.verify(token, process.env.JWT_ACCESS_SECRET);
 
+    if (!user.verified) {
+      return res.status(400).json({ msg: "User not verified yet" });
+    }
+
     req.user = user;
     next();
   } catch {

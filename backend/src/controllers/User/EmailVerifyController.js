@@ -30,11 +30,11 @@ module.exports = {
   }),
 
   resendEmailVerify: asyncHandler(async (req, res) => {
-    const { email } = req.body;
+    const { user } = req;
 
-    const user = await User.findOne({ where: { email } });
+    const userExists = await User.findByPk(user.id);
 
-    if (!user) {
+    if (!userExists) {
       return res.status(404).json({ msg: "User not found" });
     }
 
