@@ -1,8 +1,8 @@
-import React, { ChangeEvent, MouseEvent, useEffect, useState } from 'react'
+import { ChangeEvent, MouseEvent, useState } from 'react'
 import Logo from '../../../Assets/Logo'
 import { Facebook, Google } from '../../../Assets/LoginRegister'
-import { Link } from 'react-router-dom'
-import LoginForm from '../../../Types/Auth/Login'
+import { Link, useNavigate } from 'react-router-dom'
+import { LoginForm } from '../../../Types/Auth/Login'
 import Auth from '../../../Services/Auth/Auth'
 import Validator from '../../../Validator'
 import Error from '../../../Components/Errors'
@@ -16,6 +16,8 @@ const Login = () => {
     const [loginFormDataError, setLoginFormDataError] = useState<Partial<Record<keyof LoginForm, string[]>>>({});
 
     const [error, setError] = useState<string | null>();
+
+    const navigate = useNavigate();
 
     const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
         setLoginFormData((prevData) => ({
@@ -34,8 +36,8 @@ const Login = () => {
 
         if (validated) {
             Auth.login(loginFormData)
-                .then((data) => {
-                    console.log(data);
+                .then(() => {
+                    navigate('/');
                 }).catch((error) => {
                     setError(error.msg);
                     setTimeout(() => {
@@ -69,7 +71,7 @@ const Login = () => {
                         name='loginInfo'
                         type='email'
                         required
-                        className="dark:bg-gray shadow placeholder:dark:text-white placeholder:opacity-50 placeholder:font-montserrat py-2 ps-10 w-full rounded-md"
+                        className="dark:bg-gray shadow dark:text-white text-black placeholder:dark:text-white placeholder:opacity-50 placeholder:font-montserrat py-2 ps-10 w-full rounded-md"
                         placeholder="Email" />
                 </div>
                 <Error allErrors={loginFormDataError} showError="loginInfo" />
@@ -83,7 +85,7 @@ const Login = () => {
                         name='password'
                         type='password'
                         required
-                        className="dark:bg-gray shadow placeholder:dark:text-white placeholder:opacity-50 placeholder:font-montserrat py-2 ps-10 w-full rounded-md"
+                        className="dark:bg-gray shadow dark:text-white text-black placeholder:dark:text-white placeholder:opacity-50 placeholder:font-montserrat py-2 ps-10 w-full rounded-md"
                         placeholder="Password" />
                 </div>
                 <Error allErrors={loginFormDataError} showError="password" />

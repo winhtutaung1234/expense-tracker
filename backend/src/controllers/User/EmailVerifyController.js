@@ -1,55 +1,63 @@
-const { User } = require("../../models");
-const { EmailVerificationToken } = require("../../models");
+require("dotenv").config();
 
+const { User, EmailVerificationToken } = require("../../models");
 const asyncHandler = require("express-async-handler");
 const sendEmail = require("../../utils/sendEmail");
-
 const generateEmailVerificationToken = require("../../utils/emailVerification/generateEmailVerificationToken");
 const validateEmailVerificationToken = require("../../utils/emailVerification/validateEmailVerificationToken");
 const sendEmailQueue = require("../../queues/emailQueue");
+const generateAccessAndRefreshTokens = require("../../utils/generateAccessAndRefreshTokens");
+const jwt = require("jsonwebtoken");
+const setJwtRefreshCookie = require("../../utils/cookies/setJwtRefreshCookie");
 
 module.exports = {
   emailVerify: asyncHandler(async (req, res) => {
-    const { user_id, token } = req.query;
+    const { user_id, token } = req.body;
 
     const emailToken = await validateEmailVerificationToken(user_id, token);
 
-    if (emailToken) {
-      const user = await User.findByPk(user_id);
-      if (!user) return res.status(404).json({ msg: "User not found" });
+    if (!emailToken)
+      return res.status(400).json({ msg: "Invalid or expired token" });
 
-      user.email_verified = true;
-      user.email_verified_at = new Date();
+    const user = await User.findByPk(user_id);
+    if (!user) return res.status(404).json({ msg: "User not found" });
 
-      await emailToken.destroy();
+    user.email_verified = true;
+    user.email_verified_at = new Date();
 
-      await user.save();
+    const { accessToken, refreshToken } = generateAccessAndRefreshTokens(user);
+    setJwtRefreshCookie(res, refreshToken);
 
-      return res.json({ msg: "User email verification success" });
-    }
+    await emailToken.destroy();
+    await user.save();
+
+    return res.json({
+      msg: "User email verification successful",
+      accessToken,
+    });
   }),
 
   resendEmailVerify: asyncHandler(async (req, res) => {
-    const { user } = req;
+    const { email_verify } = req.cookies;
 
-    const userExists = await User.findByPk(user.id);
-
-    if (!userExists) {
-      return res.status(404).json({ msg: "User not found" });
+    if (!email_verify) {
+      return res.status(400).json({ msg: "No verification token found" });
     }
 
-    if (user.email_verified) {
+    const decoded = jwt.verify(email_verify, process.env.EMAIL_VERIFY_SECRET);
+
+    const user = await User.findByPk(decoded.id);
+    if (!user) return res.status(404).json({ msg: "User not found" });
+
+    if (user.email_verified)
       return res.status(400).json({ msg: "Email already verified" });
-    }
 
     await EmailVerificationToken.destroy({ where: { user_id: user.id } });
 
     const verificationToken = await generateEmailVerificationToken(user.id);
-
     if (verificationToken) {
       sendEmailQueue.add({ email: user.email, url: verificationToken.url });
-
-      return res.json({ msg: "Resent email verification" });
+      return res.json({ msg: "Verification email resent" });
     }
   }),
 };

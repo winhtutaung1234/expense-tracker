@@ -56,11 +56,7 @@ router.patch(
 // EmailVerifyController
 router.get("/email-verify", EmailVerifyController.emailVerify);
 
-router.post(
-  "/resend-verification",
-  auth,
-  EmailVerifyController.resendEmailVerify
-);
+router.post("/resend-verification", EmailVerifyController.resendEmailVerify);
 
 module.exports = {
   usersRouter: router,

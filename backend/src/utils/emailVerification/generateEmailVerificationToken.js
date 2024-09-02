@@ -1,10 +1,12 @@
+require("dotenv").config();
+
 const { EmailVerificationToken } = require("../../models");
 const generateToken = require("../generateToken");
 const bcrypt = require("bcrypt");
 
 async function generateEmailVerificationToken(userId) {
   const token = await generateToken();
-  const url = `http://localhost:8000/api/email-verify?user_id=${userId}&token=${token}`;
+  const url = `${process.env.APP_URL}/email-verify?user_id=${userId}&token=${token}`;
 
   await EmailVerificationToken.destroy({ where: { user_id: userId } });
 

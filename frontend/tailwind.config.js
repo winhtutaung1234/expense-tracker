@@ -17,6 +17,7 @@ export default {
       colors: {
         'gray': '#4A4A4A',
         'yellow': "#FFDC26",
+        'light-yellow': "#FDE460",
         'dark-yellow': "#BB9D01",
       },
       dropShadow: {
@@ -26,6 +27,7 @@ export default {
         alexbrush: ['Alex Brush', 'cursive'],
         arsenal: ['Arsenal', 'sans-serif'],
         montserrat: ["Montserrat", "sans-serif"],
+        inter: ["Inter", "sans-serif"]
       },
     },
   },

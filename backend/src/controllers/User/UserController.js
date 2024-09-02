@@ -10,6 +10,8 @@ const sendEmailQueue = require("../../queues/emailQueue");
 const setJwtRefreshCookie = require("../../utils/cookies/setJwtRefreshCookie");
 
 const bcrypt = require("bcrypt");
+const jwt = require("jsonwebtoken");
+const sendEmail = require("../../utils/sendEmail");
 
 const include = [Role];
 
@@ -34,31 +36,53 @@ module.exports = {
 
   create: asyncHandler(async (req, res) => {
     const user = await User.register(req.body);
-    const { accessToken, refreshToken } = await generateAccessAndRefreshTokens(
-      user
-    );
-
-    setJwtRefreshCookie(res, refreshToken);
 
     const verificationToken = await generateEmailVerificationToken(user.id);
 
     if (verificationToken) {
       sendEmailQueue.add({ email: user.email, url: verificationToken.url });
 
-      return res.status(201).json({ accessToken });
+      const emailVerifyToken = jwt.sign(
+        { id: user.id },
+        process.env.EMAIL_VERIFY_SECRET
+      );
+      res.cookie("email_verify_token", emailVerifyToken, { httpOnly: true });
+
+      return res.status(201).json({ msg: "User register success" });
     }
   }),
 
   login: asyncHandler(async (req, res) => {
     const user = await User.login(req.body);
 
-    const { accessToken, refreshToken } = await generateAccessAndRefreshTokens(
-      user
-    );
+    // if user email_verified
+    if (user.email_verified) {
+      const { accessToken, refreshToken } =
+        await generateAccessAndRefreshTokens(user);
 
-    setJwtRefreshCookie(res, refreshToken);
+      setJwtRefreshCookie(res, refreshToken);
 
-    return res.json({ accessToken });
+      return res.json({ accessToken });
+    }
+
+    if (!user.email_verified) {
+      const verificationToken = await generateEmailVerificationToken(user.id);
+
+      if (verificationToken) {
+        sendEmailQueue.add({ email: user.email, url: verificationToken.url });
+
+        const emailVerifyToken = jwt.sign(
+          { id: user.id },
+          process.env.EMAIL_VERIFY_SECRET
+        );
+
+        console.log("email verify token: ", emailVerifyToken);
+
+        res.cookie("email_verify", emailVerifyToken);
+
+        return res.json({ msg: "Please verify your email" });
+      }
+    }
   }),
 
   refresh: asyncHandler(async (req, res) => {

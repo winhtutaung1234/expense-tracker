@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from 'react'
-import ErrorProps from '../../Types/Errors'
+import { useEffect, useState } from 'react'
+import ErrorProps from '../../Types/Props/Errors'
 
 const Error = (props: ErrorProps) => {
     const { allErrors, showError } = props;

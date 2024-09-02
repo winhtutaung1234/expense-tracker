@@ -16,14 +16,13 @@ const portName = process.env.PORT;
 
 server.use(express.urlencoded({ extended: false }));
 server.use(express.json());
+server.use(cookieParser()); // Place cookieParser before routes that use cookies
 server.use(
   cors({
     origin: "http://localhost:3000",
     credentials: true,
   })
 );
-
-server.use(cookieParser());
 
 server.use("/api", usersRouter);
 

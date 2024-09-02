@@ -5,8 +5,6 @@ const bcrypt = require("bcrypt");
 const { RefreshToken } = require("../models");
 
 async function generateAccessAndRefreshTokens(user) {
-  console.log("user for generate tokens: ", user);
-
   // check if refresh token already exists
   const refreshExists = await RefreshToken.findOne({
     where: { user_id: user.id },

@@ -1,11 +1,13 @@
-import LoginForm from "../../Types/Auth/Login";
+import { LoginForm, LoginResponse } from "../../Types/Auth/Login";
 import api from "../api";
 import Storage from "../Storage";
 
 class Auth {
-    static async getUser() {
+    static async verify() {
         return api.get('/verify')
-            .then((data) => data)
+            .then((response) => {
+                return response.data;
+            })
             .catch((error) => {
                 Storage.clear();
                 throw error;
@@ -13,11 +15,15 @@ class Auth {
     }
 
     static async login(loginFormData: LoginForm) {
-        return api.post('/login', loginFormData)
-            .then((data) => data)
+        return api.post<LoginResponse>('/login', loginFormData)
+            .then((response) => {
+                const { accessToken } = response.data;
+                Storage.setItem('Access Token', accessToken);
+                return response.data;
+            })
             .catch((error) => {
                 throw error;
-            })
+            });
     }
 }
 
