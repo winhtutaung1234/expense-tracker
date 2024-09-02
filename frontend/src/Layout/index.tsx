@@ -1,3 +1,3 @@
 import Master from "./master";
 
-export { Master }
+export { Master };
