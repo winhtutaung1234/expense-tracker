@@ -17,8 +17,6 @@ module.exports = {
     const { name, balance, currency_id, description } = req.body;
     const { user } = req;
 
-    console.log("userId: ", user.id);
-
     const userExists = await User.findByPk(user.id);
     if (!userExists)
       return res.status(400).json({ msg: `User not found with id ${user.id}` });

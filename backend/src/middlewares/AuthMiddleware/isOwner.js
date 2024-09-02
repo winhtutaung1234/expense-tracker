@@ -17,8 +17,7 @@ function isOwner(type) {
     if (type === "account") {
       const account = await Account.findByPk(id);
       if (account.user_id === user.id) {
-        await account.destroy();
-        return res.status(200).json({ msg: "Account deleted successfully" });
+        return next();
       }
     }
 

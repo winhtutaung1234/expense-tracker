@@ -47,14 +47,7 @@ module.exports = {
     const verificationToken = await generateEmailVerificationToken(user.id);
 
     if (verificationToken) {
-      // sendEmailQueue.add({ email: user.email, url: verificationToken.url });
-
-      sendEmail({
-        from: "expensetacker.com",
-        to: user.email,
-        subject: "email verification",
-        url: verificationToken.url,
-      });
+      sendEmailQueue.add({ email: user.email, url: verificationToken.url });
 
       return res.json({ msg: "Resent email verification" });
     }

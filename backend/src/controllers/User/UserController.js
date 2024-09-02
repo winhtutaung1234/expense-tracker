@@ -8,7 +8,6 @@ const UserResource = require("../../resources/UserResource");
 const generateEmailVerificationToken = require("../../utils/emailVerification/generateEmailVerificationToken");
 const sendEmailQueue = require("../../queues/emailQueue");
 const setJwtRefreshCookie = require("../../utils/cookies/setJwtRefreshCookie");
-const sendEmail = require("../../utils/sendEmail");
 
 const bcrypt = require("bcrypt");
 
@@ -44,14 +43,7 @@ module.exports = {
     const verificationToken = await generateEmailVerificationToken(user.id);
 
     if (verificationToken) {
-      // sendEmailQueue.add({ email: user.email, url: verificationToken.url });
-
-      sendEmail({
-        from: "expensetacker.com",
-        to: user.email,
-        subject: "email verification",
-        url: verificationToken.url,
-      });
+      sendEmailQueue.add({ email: user.email, url: verificationToken.url });
 
       return res.status(201).json({ accessToken });
     }
