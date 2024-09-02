@@ -1,8 +1,3 @@
-type RegisterForm = {
-    name: string;
-    email: string;
-    password: string;
-    confirmpassword: string;
-}
+import RegisterForm from "./RegisterForm";
 
-export default RegisterForm;
+export type { RegisterForm };

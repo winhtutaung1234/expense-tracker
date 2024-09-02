@@ -1,8 +1,8 @@
-import React, { ChangeEvent, useState } from 'react'
+import { ChangeEvent, useState } from 'react'
 import Logo from '../../../Assets/Logo'
 import { Facebook, Google } from '../../../Assets/LoginRegister'
 import { Link } from 'react-router-dom'
-import RegisterForm from '../../../Types/Auth/Register'
+import { RegisterForm } from '../../../Types/Auth/Register'
 
 const Register = () => {
     const [registerFromData, setRegisterFromData] = useState<RegisterForm>({
@@ -11,6 +11,7 @@ const Register = () => {
         password: "",
         confirmpassword: "",
     })
+    
     const [error, setError] = useState();
 
     const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
