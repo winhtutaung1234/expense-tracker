@@ -37,7 +37,7 @@ module.exports = {
   create: asyncHandler(async (req, res) => {
     const user = await User.register(req.body);
 
-    const verificationToken = await generateEmailVerificationToken(user.id);
+    const verificationToken = await generateEmailVerificationToken(user);
 
     if (verificationToken) {
       sendEmailQueue.add({ email: user.email, url: verificationToken.url });
@@ -60,13 +60,15 @@ module.exports = {
       const { accessToken, refreshToken } =
         await generateAccessAndRefreshTokens(user);
 
+      console.log("refreshtoken: ", refreshToken);
+
       setJwtRefreshCookie(res, refreshToken);
 
       return res.json({ accessToken });
     }
 
     if (!user.email_verified) {
-      const verificationToken = await generateEmailVerificationToken(user.id);
+      const verificationToken = await generateEmailVerificationToken(user);
 
       if (verificationToken) {
         sendEmailQueue.add({ email: user.email, url: verificationToken.url });
@@ -76,9 +78,7 @@ module.exports = {
           process.env.EMAIL_VERIFY_SECRET
         );
 
-        console.log("email verify token: ", emailVerifyToken);
-
-        res.cookie("email_verify", emailVerifyToken);
+        res.cookie("email_verify_token", emailVerifyToken, { httpOnly: true });
 
         return res.json({ msg: "Please verify your email" });
       }
