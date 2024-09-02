@@ -9,6 +9,7 @@ const validator = require("../middlewares/common/validator");
 const validateId = require("../middlewares/common/validateId");
 const auth = require("../middlewares/AuthMiddleware/auth");
 const EmailVerifyController = require("../controllers/User/EmailVerifyController");
+const isAdmin = require("../middlewares/AuthMiddleware/isAdmin");
 const router = express.Router();
 
 router.get("/verify", auth, UserController.verify);
@@ -20,8 +21,9 @@ router.post("/users", createUserValidation, validator, UserController.create);
 router.post("/login", loginUserValidation, validator, UserController.login);
 
 // logout
-router.post("/logout/:id", UserController.logout);
+router.post("/logout", auth, UserController.logout);
 
+// refresh token -> issue a new access and refresh tokens -> needs access token
 router.post(
   "/refresh-token",
   refreshValidation,
@@ -31,6 +33,8 @@ router.post(
 
 router.patch(
   "/users/:id/restore",
+  auth,
+  isAdmin,
   validateId,
   validator,
   UserController.restore

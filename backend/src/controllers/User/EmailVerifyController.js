@@ -30,11 +30,11 @@ module.exports = {
   }),
 
   resendEmailVerify: asyncHandler(async (req, res) => {
-    const { email } = req.body;
+    const { user } = req;
 
-    const user = await User.findOne({ where: { email } });
+    const userExists = await User.findByPk(user.id);
 
-    if (!user) {
+    if (!userExists) {
       return res.status(404).json({ msg: "User not found" });
     }
 
@@ -47,14 +47,7 @@ module.exports = {
     const verificationToken = await generateEmailVerificationToken(user.id);
 
     if (verificationToken) {
-      // sendEmailQueue.add({ email: user.email, url: verificationToken.url });
-
-      sendEmail({
-        from: "expensetacker.com",
-        to: user.email,
-        subject: "email verification",
-        url: verificationToken.url,
-      });
+      sendEmailQueue.add({ email: user.email, url: verificationToken.url });
 
       return res.json({ msg: "Resent email verification" });
     }

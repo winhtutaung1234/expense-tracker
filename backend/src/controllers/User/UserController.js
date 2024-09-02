@@ -8,7 +8,8 @@ const UserResource = require("../../resources/UserResource");
 const generateEmailVerificationToken = require("../../utils/emailVerification/generateEmailVerificationToken");
 const sendEmailQueue = require("../../queues/emailQueue");
 const setJwtRefreshCookie = require("../../utils/cookies/setJwtRefreshCookie");
-const sendEmail = require("../../utils/sendEmail");
+
+const bcrypt = require("bcrypt");
 
 const include = [Role];
 
@@ -57,19 +58,6 @@ module.exports = {
 
     setJwtRefreshCookie(res, refreshToken);
 
-    const verificationToken = await generateEmailVerificationToken(user.id);
-
-    if (verificationToken) {
-      // sendEmailQueue.add({ email: user.email, url: verificationToken.url });
-
-      sendEmail({
-        from: "expensetacker.com",
-        to: user.email,
-        subject: "email verification",
-        url: verificationToken.url,
-      });
-    }
-
     return res.json({ accessToken });
   }),
 
@@ -80,14 +68,17 @@ module.exports = {
     const refresh = await RefreshToken.findOne({
       where: {
         user_id,
-        token: jwt_refresh,
       },
     });
 
     if (!refresh) {
-      return res.status(400).json({
-        msg: "Invalid refresh token",
+      return res.status(404).json({
+        msg: "Refresh token not found",
       });
+    }
+
+    if (!(await bcrypt.compare(jwt_refresh, refresh.token))) {
+      return res.status(400).json({ msg: "Invalid refresh token" });
     }
 
     if (Date.now() > new Date(refresh.expires_at).getTime()) {
@@ -141,17 +132,13 @@ module.exports = {
   }),
 
   logout: asyncHandler(async (req, res) => {
-    const { id } = req.params;
+    const { user } = req;
 
-    const user = await User.findOne({ where: { id } });
+    const userExists = await User.findByPk(user.id);
 
-    if (!user) return res.status(404).json({ msg: "User not found" });
+    if (!userExists) return res.status(404).json({ msg: "User not found" });
 
-    const refreshToken = await RefreshToken.findOne({
-      where: { user_id: id },
-    });
-
-    await refreshToken.destroy();
+    await RefreshToken.destroy({ where: { user_id: user.id } });
 
     res.cookie("jwt_refresh", "", { maxAge: 1 });
 

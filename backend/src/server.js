@@ -1,13 +1,14 @@
 require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
-const { usersRouter } = require("./routers/users");
 const { errorHandler } = require("./middlewares/common/errorHandler");
 const cookieParser = require("cookie-parser");
-const { accountsRouter } = require("./routers/accounts");
-const { currenciesRouter } = require("./routers/currencies");
 const auth = require("./middlewares/AuthMiddleware/auth");
 const isAdmin = require("./middlewares/AuthMiddleware/isAdmin");
+
+const { usersRouter } = require("./routers/user/users");
+const { accountsRouter } = require("./routers/account/accounts");
+const { currenciesRouter } = require("./routers/admin/currencies");
 
 const server = express();
 
@@ -25,7 +26,8 @@ server.use(
 server.use(cookieParser());
 
 server.use("/api", usersRouter);
-server.use("/api", accountsRouter);
+
+server.use("/api", auth, accountsRouter);
 server.use("/api", auth, isAdmin, currenciesRouter);
 
 server.use(errorHandler);
