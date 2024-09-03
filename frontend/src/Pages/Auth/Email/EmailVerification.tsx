@@ -35,8 +35,8 @@ const EmailVerification = () => {
         if (Boolean(verifyEmailPayload.user_id) && Boolean(verifyEmailPayload.token)) {
             Auth.verifyEmail(verifyEmailPayload)
                 .then((data) => {
-                    console.log(data);
                     Storage.setItem('Access Token', data.accessToken);
+                    navigate('/');
                 })
                 .catch((error) => {
                     console.log(error);

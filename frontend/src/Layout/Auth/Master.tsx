@@ -37,6 +37,7 @@ const Master = () => {
         Auth.verify()
             .then((data) => {
                 setUser(data)
+                console.log(data);
             })
             .catch(() => {
                 navigate('/login');
@@ -49,7 +50,7 @@ const Master = () => {
         }
     }, [user])
 
-    return (    
+    return (
         <>
             {
                 user && user.email_verified && (

@@ -47,5 +47,4 @@ const loginUserValidation = [
 module.exports = {
   createUserValidation,
   loginUserValidation,
-  refreshValidation,
 };
