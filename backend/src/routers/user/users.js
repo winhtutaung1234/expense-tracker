@@ -54,7 +54,7 @@ router.patch(
 );
 
 // EmailVerifyController
-router.get("/email-verify", EmailVerifyController.emailVerify);
+router.post("/email-verify", EmailVerifyController.emailVerify);
 
 router.post("/resend-verification", EmailVerifyController.resendEmailVerify);
 

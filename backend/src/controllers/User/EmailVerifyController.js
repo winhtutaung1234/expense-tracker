@@ -25,7 +25,7 @@ module.exports = {
     user.email_verified = true;
     user.email_verified_at = new Date();
 
-    const { accessToken, refreshToken } = generateAccessAndRefreshTokens(user);
+    const { accessToken, refreshToken } = await generateAccessAndRefreshTokens(user);
     setJwtRefreshCookie(res, refreshToken);
 
     await emailToken.destroy();
