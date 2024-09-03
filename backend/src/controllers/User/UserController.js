@@ -90,19 +90,26 @@ module.exports = {
 
   refresh: asyncHandler(async (req, res) => {
     const { jwt_refresh } = req.cookies;
-    const { user_id } = req.body;
 
-    const refresh = await RefreshToken.findOne({
-      where: {
-        user_id,
-      },
-    });
-
-    if (!refresh) {
+    if (!jwt_refresh) {
       return res.status(404).json({
         msg: "Refresh token not found",
       });
     }
+
+    const decoded = jwt.verify(jwt_refresh, JWT_REFRESH_SECRET);
+
+    const user = await User.findByPk(decoded.id);
+
+    if (!user) {
+      return res.status(404).json({
+        msg: "User not found",
+      });
+    }
+
+    const refresh = await RefreshToken.findOne({
+      where: { user_id: decoded.id },
+    });
 
     if (!(await bcrypt.compare(jwt_refresh, refresh.token))) {
       return res.status(400).json({ msg: "Invalid refresh token" });
@@ -115,12 +122,7 @@ module.exports = {
       });
     }
 
-    const user = await User.findByPk(user_id);
-
-    if (!user) return res.status(400).json({ msg: "User not found" });
-
     await refresh.destroy();
-
     const { accessToken, refreshToken } = await generateAccessAndRefreshTokens(
       user
     );
