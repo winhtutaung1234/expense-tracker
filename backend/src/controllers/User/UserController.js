@@ -1,3 +1,5 @@
+require("dotenv").config();
+
 const { User } = require("../../models");
 const { Role } = require("../../models");
 const { RefreshToken } = require("../../models");
