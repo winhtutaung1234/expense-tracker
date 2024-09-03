@@ -99,7 +99,13 @@ module.exports = {
       });
     }
 
-    const decoded = jwt.verify(jwt_refresh, process.env.JWT_REFRESH_SECRET);
+    let decoded;
+    try {
+      decoded = jwt.verify(jwt_refresh, process.env.JWT_REFRESH_SECRET);
+    } catch {
+      res.cookie("jwt_refresh", "", { maxAge: 1 });
+      return res.status(400).json({ msg: "Jwt refresh expired" });
+    }
 
     const user = await User.findByPk(decoded.id);
 
@@ -114,14 +120,9 @@ module.exports = {
     });
 
     if (!(await bcrypt.compare(jwt_refresh, refresh.token))) {
+      // delete the cookie of jwt refresh if tokens are not match
+      res.cookie("jwt_refresh", "", { maxAge: 1 });
       return res.status(400).json({ msg: "Invalid refresh token" });
-    }
-
-    if (Date.now() > new Date(refresh.expires_at).getTime()) {
-      await refresh.destroy();
-      return res.status(404).json({
-        msg: "Refresh token expired",
-      });
     }
 
     await refresh.destroy();
