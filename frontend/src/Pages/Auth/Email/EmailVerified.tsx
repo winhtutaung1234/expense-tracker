@@ -1,17 +1,22 @@
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import Logo from '../../../Assets/Logo';
 import { useEffect } from 'react';
 
 const EmailVerified = () => {
 
     const navigate = useNavigate();
+    const location = useLocation();
 
     useEffect(() => {
-        const timer = setTimeout(() => {
-            navigate('/');
-        }, 3500);
+        if (location.state?.hasAccess) {
+            const timer = setTimeout(() => {
+                navigate('/');
+            }, 3500);
 
-        return () => clearTimeout(timer);
+            return () => clearTimeout(timer);
+        } else {
+            navigate('/');
+        }
     }, [])
 
     return (

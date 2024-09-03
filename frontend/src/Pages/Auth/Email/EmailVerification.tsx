@@ -47,7 +47,7 @@ const EmailVerification = () => {
             Auth.verifyEmail(verifyEmailPayload)
                 .then((data) => {
                     Storage.setItem('Access Token', data.accessToken);
-                    navigate('/email-verified');
+                    navigate('/email-verified', { state: { hasAccess: true } });
                 })
                 .catch((error) => {
                     console.log(error);
