@@ -37,7 +37,6 @@ const Master = () => {
         Auth.verify()
             .then((data) => {
                 setUser(data)
-                console.log(data);
             })
             .catch(() => {
                 navigate('/login');
