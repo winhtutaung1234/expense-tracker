@@ -68,7 +68,10 @@ module.exports = {
     }
 
     if (!user.email_verified) {
-      const verificationToken = await generateEmailVerificationToken(user);
+      const verificationToken = await generateEmailVerificationToken({
+        user_id: user.id,
+        email: user.email,
+      });
 
       if (verificationToken) {
         sendEmailQueue.add({ email: user.email, url: verificationToken.url });
