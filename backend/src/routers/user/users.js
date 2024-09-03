@@ -5,7 +5,6 @@ const EmailVerifyController = require("../../controllers/User/EmailVerifyControl
 const {
   createUserValidation,
   loginUserValidation,
-  refreshValidation,
 } = require("../../middlewares/UserMiddleware/userValidation");
 
 const validator = require("../../middlewares/common/validator");
