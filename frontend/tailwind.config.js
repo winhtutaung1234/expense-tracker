@@ -1,3 +1,5 @@
+import { transform } from 'typescript';
+
 /** @type {import('tailwindcss').Config} */
 export default {
   content: [
@@ -28,6 +30,32 @@ export default {
         arsenal: ['Arsenal', 'sans-serif'],
         montserrat: ["Montserrat", "sans-serif"],
         inter: ["Inter", "sans-serif"]
+      },
+      keyframes: {
+        opacityAppear: {
+          '50%': { opacity: "0" },  // Initial color (gray)
+          '100%': { opacity: "1" }, // Final color (yellow)
+        },
+        opacityAppearHalf: {
+          '50%': { opacity: "0" },  // Initial color (gray)
+          '100%': { opacity: "1" }, // Final color (yellow)
+        },
+        moveLeft: {
+          '0%': { opacity: "0" },
+          '30%': { left: "50%" },
+          '50%': { opacity: "1" },
+          '100%': { left: "15%", opacity: "1" }
+        },
+        takeFullWidth: {
+          '50%': { width: "0%", border: "none" },
+          '100%': { width: "100%", border: "1px solid #FDE460" }
+        }
+      },
+      animation: {
+        opacityAppear: 'opacityAppear 2s ease-in-out forwards',
+        opacityAppearHalf: 'opacityAppearHalf 1.5s ease-in forwards',
+        moveLeft: "moveLeft 1.5s ease-in-out forwards",
+        takeFullWidth: "takeFullWidth 1.5s ease-in-out forwards"
       },
     },
   },

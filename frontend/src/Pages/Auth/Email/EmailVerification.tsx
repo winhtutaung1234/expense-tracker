@@ -8,6 +8,7 @@ import Storage from '../../../Services/Storage';
 const EmailVerification = () => {
     const location = useLocation();
     const rawSearch = location.search;
+    const [redirect, setRedirect] = useState(false);
     const navigate = useNavigate();
 
     const [verifyEmailPayload, setVerifyEmailPayload] = useState<VerifyEmailProps>({
@@ -28,15 +29,25 @@ const EmailVerification = () => {
                 }
                 return newData;
             });
+        } else {
+            if (!Boolean(verifyEmailPayload.email)) {
+                setRedirect(true);
+            }
         }
     }, [rawSearch]);
+
+    useEffect(() => {
+        if (redirect) {
+            navigate('/');
+        }
+    }, [redirect])
 
     useEffect(() => {
         if (Boolean(verifyEmailPayload.user_id) && Boolean(verifyEmailPayload.token)) {
             Auth.verifyEmail(verifyEmailPayload)
                 .then((data) => {
                     Storage.setItem('Access Token', data.accessToken);
-                    navigate('/');
+                    navigate('/email-verified');
                 })
                 .catch((error) => {
                     console.log(error);
@@ -46,7 +57,7 @@ const EmailVerification = () => {
 
     return (
         <main className='min-h-[100svh] flex justify-center items-center'>
-            <form className='flex flex-col xl:w-[30%] md:w-[50%] sm:w-[65%] gap-3 -translate-y-[10%]'>
+            <div className='flex flex-col xl:w-[30%] md:w-[50%] sm:w-[65%] gap-3 -translate-y-[10%]'>
                 <div className="flex -translate-x-2 justify-center">
                     <img src={Logo} alt="Logo" />
                     <div className="flex flex-col items-center">
@@ -76,7 +87,7 @@ const EmailVerification = () => {
                         </button>
                     </div>
                 </div>
-            </form>
+            </div>
         </main>
     );
 };

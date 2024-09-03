@@ -1,14 +1,17 @@
 import { useEffect } from 'react'
 import { Outlet, useNavigate } from 'react-router-dom'
 import Auth from '../../Services/Auth/Auth'
+import Storage from '../../Services/Storage';
 
 const Guest = () => {
     const navigate = useNavigate();
     useEffect(() => {
-        Auth.verify()
-            .then(() => {
-                navigate('/');
-            })
+        if (Boolean(Storage.getItem('Access Token'))) {
+            Auth.verify()
+                .then(() => {
+                    navigate('/');
+                })
+        }
     }, [])
     return (
         <Outlet />
