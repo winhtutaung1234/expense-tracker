@@ -1,31 +1,54 @@
-import { useEffect, useState } from 'react'
-import Logo from '../../../Assets/Logo'
-import { User } from '../../../Types/User';
+import { useEffect, useState } from 'react';
+import Logo from '../../../Assets/Logo';
+import { useLocation, useNavigate } from 'react-router-dom';
+import { VerifyEmailProps } from '../../../Types/Auth/Email';
 import Auth from '../../../Services/Auth/Auth';
-import { useNavigate } from 'react-router-dom';
+import Storage from '../../../Services/Storage';
 
 const EmailVerification = () => {
-    const [user, setUser] = useState<User | null>();
+    const location = useLocation();
+    const rawSearch = location.search;
     const navigate = useNavigate();
 
+    const [verifyEmailPayload, setVerifyEmailPayload] = useState<VerifyEmailProps>({
+        user_id: "",
+        email: location.state?.email || "",
+        token: "",
+    });
+
     useEffect(() => {
-        Auth.verify()
-            .then((data) => {
-                if (data.email_verified) {
-                    navigate('/');
-                } else {
-                    setUser(data)
+        if (Boolean(rawSearch)) {
+            const params = new URLSearchParams(rawSearch);
+            setVerifyEmailPayload((prevData) => {
+                const newData = { ...prevData };
+                for (const [key, value] of params.entries()) {
+                    if (key in newData) {
+                        newData[key as keyof VerifyEmailProps] = value;
+                    }
                 }
-            }).catch(() => {
-                navigate('/login');
-            })
-    }, [])
+                return newData;
+            });
+        }
+    }, [rawSearch]);
+
+    useEffect(() => {
+        if (Boolean(verifyEmailPayload.user_id) && Boolean(verifyEmailPayload.token)) {
+            Auth.verifyEmail(verifyEmailPayload)
+                .then((data) => {
+                    console.log(data);
+                    Storage.setItem('Access Token', data.accessToken);
+                })
+                .catch((error) => {
+                    console.log(error);
+                })
+        }
+    }, [verifyEmailPayload])
 
     return (
         <main className='min-h-[100svh] flex justify-center items-center'>
-            <form className='flex flex-col  xl:w-[30%] md:w-[50%] sm:w-[65%] gap-3 -translate-y-[10%]'>
+            <form className='flex flex-col xl:w-[30%] md:w-[50%] sm:w-[65%] gap-3 -translate-y-[10%]'>
                 <div className="flex -translate-x-2 justify-center">
-                    <img src={Logo} />
+                    <img src={Logo} alt="Logo" />
                     <div className="flex flex-col items-center">
                         <h1 className="font-alexbrush text-4xl dark:text-white drop-shadow-logo">Budget Flow</h1>
                         <p className="font-arsenal italic dark:text-white text-xs">Free yourself Financially</p>
@@ -40,15 +63,14 @@ const EmailVerification = () => {
                     </div>
                     <div className='text-[14px]'>
                         <span className='opacity-50'>
-                            We have sent  an email verification link to
-                        </span>
-                        <span className='underline'> {user && user.email}</span>
+                            We have sent an email verification link to
+                        </span> <span className='underline'>{verifyEmailPayload.email}</span>
                         <span className='opacity-50'>
                             . Please check your inbox and enter the link to verify.
                         </span>
                     </div>
                     <div className='flex flex-col gap-2'>
-                        <p>Didn't recieve an email?</p>
+                        <p>Didn't receive an email?</p>
                         <button className='bg-login-button text-black font-montserrat py-3 rounded-md'>
                             Send Verification Link Again
                         </button>
@@ -56,7 +78,7 @@ const EmailVerification = () => {
                 </div>
             </form>
         </main>
-    )
-}
+    );
+};
 
-export default EmailVerification
+export default EmailVerification;

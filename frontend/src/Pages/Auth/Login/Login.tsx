@@ -36,8 +36,13 @@ const Login = () => {
 
         if (validated) {
             Auth.login(loginFormData)
-                .then(() => {
-                    navigate('/');
+                .then((data) => {
+                    const { msg } = data;
+                    if (msg === "Please verify your email") {
+                        navigate('/email-verify', { state: { email: loginFormData.loginInfo } })
+                    } else {
+                        navigate('/');
+                    }
                 }).catch((error) => {
                     setError(error.msg);
                     setTimeout(() => {

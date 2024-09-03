@@ -12,12 +12,15 @@ function App() {
   return (
     <BrowserRouter>
       <Routes>
+
         <Route element={<Guest />}>
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
         </Route>
+
+        <Route path="/email-verify" element={<EmailVerification />} />
+
         <Route element={<Master />}>
-          <Route path="/email-verify" element={<EmailVerification />} />
           <Route path="" element={<Dashboard />} />
         </Route>
       </Routes>

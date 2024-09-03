@@ -1,3 +1,4 @@
+import { VerifyEmailProps } from "../../Types/Auth/Email";
 import { LoginForm, LoginResponse } from "../../Types/Auth/Login";
 import api from "../api";
 import Storage from "../Storage";
@@ -18,12 +19,26 @@ class Auth {
         return api.post<LoginResponse>('/login', loginFormData)
             .then((response) => {
                 const { accessToken } = response.data;
-                Storage.setItem('Access Token', accessToken);
+                if (Boolean(accessToken)) {
+                    Storage.setItem('Access Token', accessToken);
+                }
                 return response.data;
             })
             .catch((error) => {
                 throw error;
             });
+    }
+
+    static async verifyEmail(emailPayload: VerifyEmailProps) {
+        return api.post(`/email-verify`, emailPayload)
+            .then((response) => {
+                const { accessToken } = response.data;
+                Storage.setItem('Access Token', accessToken)
+                return response.data;
+            })
+            .catch((error) => {
+                throw error;
+            })
     }
 }
 
