@@ -102,9 +102,11 @@ module.exports = {
     let decoded;
     try {
       decoded = jwt.verify(jwt_refresh, process.env.JWT_REFRESH_SECRET);
-    } catch {
-      res.cookie("jwt_refresh", "", { maxAge: 1 });
-      return res.status(400).json({ msg: "Jwt refresh expired" });
+    } catch (err) {
+      if (err.message === "jwt expired") {
+        res.cookie("jwt_refresh", "", { maxAge: 1 });
+        return res.status(401).json({ msg: "Jwt refresh expired" });
+      }
     }
 
     const user = await User.findByPk(decoded.id);
