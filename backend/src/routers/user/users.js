@@ -5,7 +5,6 @@ const EmailVerifyController = require("../../controllers/User/EmailVerifyControl
 const {
   createUserValidation,
   loginUserValidation,
-  refreshValidation,
 } = require("../../middlewares/UserMiddleware/userValidation");
 
 const validator = require("../../middlewares/common/validator");
@@ -26,7 +25,12 @@ router.post("/login", loginUserValidation, validator, UserController.login);
 router.post("/logout", auth, UserController.logout);
 
 // refresh token -> issue a new access and refresh tokens -> needs access token
-router.post("/refresh-token", UserController.refresh);
+router.post(
+  "/refresh-token",
+  refreshValidation,
+  validator,
+  UserController.refresh
+);
 
 // soft deleted user from db -> only permission admin
 router.delete(
