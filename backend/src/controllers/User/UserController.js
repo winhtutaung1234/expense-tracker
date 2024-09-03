@@ -99,7 +99,7 @@ module.exports = {
       });
     }
 
-    const decoded = jwt.verify(jwt_refresh, JWT_REFRESH_SECRET);
+    const decoded = jwt.verify(jwt_refresh, process.env.JWT_REFRESH_SECRET);
 
     const user = await User.findByPk(decoded.id);
 
