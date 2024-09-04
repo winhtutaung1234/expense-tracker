@@ -38,7 +38,6 @@ module.exports = {
 
   create: asyncHandler(async (req, res) => {
     const user = await User.register(req.body);
-
     const verificationToken = await generateEmailVerificationToken(user);
 
     if (verificationToken) {
@@ -70,10 +69,7 @@ module.exports = {
     }
 
     if (!user.email_verified) {
-      const verificationToken = await generateEmailVerificationToken({
-        user_id: user.id,
-        email: user.email,
-      });
+      const verificationToken = await generateEmailVerificationToken(user);
 
       if (verificationToken) {
         sendEmailQueue.add({ email: user.email, url: verificationToken.url });

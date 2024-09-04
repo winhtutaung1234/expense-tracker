@@ -38,23 +38,22 @@ module.exports = {
   }),
 
   resendEmailVerify: asyncHandler(async (req, res) => {
-    const { email_verify } = req.cookies;
+    const { email_verify_token } = req.cookies;
 
-    if (!email_verify) {
+    if (!email_verify_token) {
       return res.status(400).json({ msg: "No verification token found" });
     }
 
-    const decoded = jwt.verify(email_verify, process.env.EMAIL_VERIFY_SECRET);
+    const decoded = jwt.verify(email_verify_token, process.env.EMAIL_VERIFY_SECRET);
 
     const user = await User.findByPk(decoded.id);
     if (!user) return res.status(404).json({ msg: "User not found" });
 
     if (user.email_verified)
       return res.status(400).json({ msg: "Email already verified" });
-
     await EmailVerificationToken.destroy({ where: { user_id: user.id } });
 
-    const verificationToken = await generateEmailVerificationToken(user);
+    const verificationToken = await generateEmailVerificationToken({user_id: user.id, email: user.email});
     if (verificationToken) {
       sendEmailQueue.add({ email: user.email, url: verificationToken.url });
       return res.json({ msg: "Verification email resent" });
