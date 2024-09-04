@@ -25,11 +25,15 @@ module.exports = {
     user.email_verified = true;
     user.email_verified_at = new Date();
 
-    const { accessToken, refreshToken } = await generateAccessAndRefreshTokens(user);
+    const { accessToken, refreshToken } = await generateAccessAndRefreshTokens(
+      user
+    );
     setJwtRefreshCookie(res, refreshToken);
 
     await emailToken.destroy();
     await user.save();
+
+    res.cookie("email_verify_token", "", { maxAge: 1 });
 
     return res.json({
       msg: "User email verification successful",
@@ -38,13 +42,16 @@ module.exports = {
   }),
 
   resendEmailVerify: asyncHandler(async (req, res) => {
-    const { email_verify } = req.cookies;
+    const { email_verify_token } = req.cookies;
 
-    if (!email_verify) {
+    if (!email_verify_token) {
       return res.status(400).json({ msg: "No verification token found" });
     }
 
-    const decoded = jwt.verify(email_verify, process.env.EMAIL_VERIFY_SECRET);
+    const decoded = jwt.verify(
+      email_verify_token,
+      process.env.EMAIL_VERIFY_SECRET
+    );
 
     const user = await User.findByPk(decoded.id);
     if (!user) return res.status(404).json({ msg: "User not found" });
