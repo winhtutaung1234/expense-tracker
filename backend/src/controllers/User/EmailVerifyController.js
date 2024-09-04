@@ -60,7 +60,7 @@ module.exports = {
       return res.status(400).json({ msg: "Email already verified" });
     await EmailVerificationToken.destroy({ where: { user_id: user.id } });
 
-    const verificationToken = await generateEmailVerificationToken({user_id: user.id, email: user.email});
+    const verificationToken = await generateEmailVerificationToken(user);
     if (verificationToken) {
       sendEmailQueue.add({ email: user.email, url: verificationToken.url });
       return res.json({ msg: "Verification email resent" });
