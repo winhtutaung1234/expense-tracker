@@ -13,6 +13,7 @@ export default {
         'dark-custom': 'linear-gradient(to top right, #1E1E1E 0%, #353434 71%, #282828 87%)',
         'white-custom': 'linear-gradient(to top right, #F6F6F6 0%, #FEFEFE 71%, #F2F2F2 87%)',
         'dark-nav-background': "linear-gradient(45deg, #2F2F2F 0%, #343434 5%, #3E3E3E 6%, #4C4C4C 10%, #2F2F2F 21%)",
+        'light-nav-background': "linear-gradient(45deg, #FFFFFF 0%, #F2F2F2 5%, #F5F5F5 6%, #F2F2F2 10%, #FFFFFF 21%)",
         'nav-border': "linear-gradient(105deg, #FFDC26, #998417)",
         'login-button': 'linear-gradient(105deg, #BEA41C 6%, #FFDC26 45%, #FDE460 69%, #998417 96%)',
       },
@@ -49,13 +50,23 @@ export default {
         takeFullWidth: {
           '50%': { width: "0%", border: "none" },
           '100%': { width: "100%", border: "1px solid #FDE460" }
-        }
+        },
+        openDropDown: {
+          '0%': { transform: "translateY(-8px)", opacity: 0 },
+          '100%': { transform: "translateY(0)", opacity: 1 }
+        },
+        closeDropDown: {
+          '0%': { transform: "translateY(0)", opacity: 1 },
+          '100%': { transform: "translateY(-8px)", opacity: 0 }
+        },
       },
       animation: {
         opacityAppear: 'opacityAppear 2s ease-in-out forwards',
         opacityAppearHalf: 'opacityAppearHalf 1.5s ease-in forwards',
         moveLeft: "moveLeft 1.5s ease-in-out forwards",
-        takeFullWidth: "takeFullWidth 1.5s ease-in-out forwards"
+        takeFullWidth: "takeFullWidth 1.5s ease-in-out forwards",
+        openDropDown: "openDropDown .25s ease-in-out forwards",
+        closeDropDown: "closeDropDown .25s ease-in-out forwards",
       },
     },
   },

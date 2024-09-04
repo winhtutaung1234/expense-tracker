@@ -64,7 +64,7 @@ const Login = () => {
 
     return (
         <main className="dark:bg-dark-custom bg-white-custom min-h-svh flex justify-center items-center">
-            <form className="flex items-center flex-col min-w-[330px]">
+            <form className="flex items-center flex-col min-w-[330px] max-w-[330px]">
                 <div className="flex -translate-x-2">
                     <img src={Logo} />
                     <div className="flex flex-col items-center">

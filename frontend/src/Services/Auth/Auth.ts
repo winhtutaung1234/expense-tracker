@@ -43,6 +43,16 @@ class Auth {
         }
     }
 
+    static async logout() {
+        try {
+            const response = await api.post('/logout');
+            Storage.clear();
+            return response.data;
+        } catch (error) {
+            throw error;
+        }
+    }
+
     static async verifyEmail(emailPayload: VerifyEmailProps) {
         try {
             const response = await api.post(`/email-verify`, emailPayload);

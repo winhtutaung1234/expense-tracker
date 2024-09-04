@@ -64,7 +64,7 @@ const Register = () => {
 
     return (
         <main className="dark:bg-dark-custom bg-white-custom min-h-svh flex justify-center items-center">
-            <form className="flex items-center flex-col min-w-[330px]">
+            <form className="flex items-center flex-col min-w-[330px] max-w-[330px]">
                 <div className="flex -translate-x-2">
                     <img src={Logo} />
                     <div className="flex flex-col items-center">
@@ -84,7 +84,7 @@ const Register = () => {
                         value={registerFormData.name}
                         name='name'
                         onChange={handleInputChange}
-                        className="dark:bg-gray placeholder:text-black shadow placeholder:dark:text-white placeholder:opacity-50 placeholder:font-montserrat py-2 ps-10 w-full rounded-md" placeholder="Name" />
+                        className="dark:bg-gray dark:text-white placeholder:text-black shadow placeholder:dark:text-white placeholder:opacity-50 placeholder:font-montserrat py-2 ps-10 w-full rounded-md" placeholder="Name" />
                 </div>
                 <Error allErrors={registerFormDataError} showError="name" />
                 <div className="w-full relative mt-3">
@@ -95,7 +95,7 @@ const Register = () => {
                         value={registerFormData.email}
                         name='email'
                         onChange={handleInputChange}
-                        className="dark:bg-gray placeholder:text-black shadow placeholder:dark:text-white placeholder:opacity-50 placeholder:font-montserrat py-2 ps-10 w-full rounded-md" placeholder="Email" />
+                        className="dark:bg-gray dark:text-white placeholder:text-black shadow placeholder:dark:text-white placeholder:opacity-50 placeholder:font-montserrat py-2 ps-10 w-full rounded-md" placeholder="Email" />
                 </div>
                 <Error allErrors={registerFormDataError} showError="email" />
                 <div className="w-full relative mt-3">
@@ -106,7 +106,7 @@ const Register = () => {
                         value={registerFormData.password}
                         name='password'
                         onChange={handleInputChange}
-                        className="dark:bg-gray placeholder:text-black shadow placeholder:dark:text-white placeholder:opacity-50 placeholder:font-montserrat py-2 ps-10 w-full rounded-md" placeholder="Password" />
+                        className="dark:bg-gray dark:text-white placeholder:text-black shadow placeholder:dark:text-white placeholder:opacity-50 placeholder:font-montserrat py-2 ps-10 w-full rounded-md" placeholder="Password" />
                 </div>
                 <Error allErrors={registerFormDataError} showError="password" />
                 <div className="w-full relative mt-3">
@@ -117,7 +117,7 @@ const Register = () => {
                         value={registerFormData.confirmpassword}
                         name='confirmpassword'
                         onChange={handleInputChange}
-                        className="dark:bg-gray placeholder:text-black shadow placeholder:dark:text-white placeholder:opacity-50 placeholder:font-montserrat py-2 ps-10 w-full rounded-md" placeholder="Confirm Password" />
+                        className="dark:bg-gray dark:text-white placeholder:text-black shadow placeholder:dark:text-white placeholder:opacity-50 placeholder:font-montserrat py-2 ps-10 w-full rounded-md" placeholder="Confirm Password" />
                 </div>
                 <Error allErrors={registerFormDataError} showError="confirmpassword" />
                 <a href='#' className='text-dark-yellow dark:text-yellow text-sm self-end mt-2 font-montserrat'>Forgot Password?</a>   {error &&

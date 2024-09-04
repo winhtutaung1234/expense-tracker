@@ -11,8 +11,8 @@
 :root {
     /* Light mode colors */
     --background-color: #ffffff;
-    --gradient-start: #f0f0f0;
-    --gradient-end: #d0d0d0;
+    --gradient-start: #f6f6f6;
+    --gradient-end: #eeeeee;
     --text-color: #000000;
 }
 
