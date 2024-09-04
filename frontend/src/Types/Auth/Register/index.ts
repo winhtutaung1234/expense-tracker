@@ -1,3 +1,4 @@
 import RegisterForm from "./RegisterForm";
+import RegisterResponse from "./RegisterResponse";
 
-export type { RegisterForm };
+export type { RegisterForm, RegisterResponse };

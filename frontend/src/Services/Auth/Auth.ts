@@ -1,5 +1,6 @@
 import { VerifyEmailProps } from "../../Types/Auth/Email";
 import { LoginForm, LoginResponse } from "../../Types/Auth/Login";
+import { RegisterForm, RegisterResponse } from "../../Types/Auth/Register";
 import { User } from "../../Types/User";
 import api from "../api";
 import Storage from "../Storage";
@@ -33,6 +34,15 @@ class Auth {
         }
     }
 
+    static async register(registerFormData: RegisterForm): Promise<RegisterResponse> {
+        try {
+            const response = await api.post<RegisterResponse>('/users', registerFormData);
+            return response.data;
+        } catch (error) {
+            throw error;
+        }
+    }
+
     static async verifyEmail(emailPayload: VerifyEmailProps) {
         try {
             const response = await api.post(`/email-verify`, emailPayload);
@@ -40,6 +50,15 @@ class Auth {
             if (accessToken) {
                 Storage.setItem('Access Token', accessToken);
             }
+            return response.data;
+        } catch (error) {
+            throw error;
+        }
+    }
+
+    static async resendEmail() {
+        try {
+            const response = await api.post('/resend-verification');
             return response.data;
         } catch (error) {
             throw error;

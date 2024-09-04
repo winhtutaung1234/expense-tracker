@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Logo from '../../../Assets/Logo';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { VerifyEmailProps } from '../../../Types/Auth/Email';
@@ -10,12 +10,38 @@ const EmailVerification = () => {
     const rawSearch = location.search;
     const [redirect, setRedirect] = useState(false);
     const navigate = useNavigate();
+    const [buttonDisabled, setButtonDisabled] = useState(true);
+    const [countdown, setCountdown] = useState(10);
+    const countdownRef = useRef<number | null>(null);
+    const intervalRef = useRef<number | null>(null);
 
     const [verifyEmailPayload, setVerifyEmailPayload] = useState<VerifyEmailProps>({
         user_id: "",
         email: location.state?.email || "",
         token: "",
     });
+
+    useEffect(() => {
+        countdownRef.current = countdown;
+        intervalRef.current = setInterval(() => {
+            setCountdown((prev) => {
+                if (prev <= 1) {
+                    if (intervalRef.current) {
+                        clearInterval(intervalRef.current);
+                    }
+                    setButtonDisabled(false);
+                    return 0;
+                }
+                return prev - 1;
+            });
+        }, 1000);
+
+        return () => {
+            if (intervalRef.current) {
+                clearInterval(intervalRef.current);
+            }
+        };
+    }, []);
 
     useEffect(() => {
         if (Boolean(rawSearch)) {
@@ -40,7 +66,7 @@ const EmailVerification = () => {
         if (redirect) {
             navigate('/');
         }
-    }, [redirect])
+    }, [redirect, navigate]);
 
     useEffect(() => {
         if (Boolean(verifyEmailPayload.user_id) && Boolean(verifyEmailPayload.token)) {
@@ -51,9 +77,37 @@ const EmailVerification = () => {
                 })
                 .catch((error) => {
                     console.log(error);
-                })
+                });
         }
-    }, [verifyEmailPayload])
+    }, [verifyEmailPayload, navigate]);
+
+    const handleSendVerificationLinkAgain = () => {
+        Auth.resendEmail()
+            .then(() => {
+                setButtonDisabled(true);
+                setCountdown(10);
+
+                if (intervalRef.current) {
+                    clearInterval(intervalRef.current);
+                }
+
+                intervalRef.current = setInterval(() => {
+                    setCountdown((prev) => {
+                        if (prev <= 1) {
+                            if (intervalRef.current) {
+                                clearInterval(intervalRef.current);
+                            }
+                            setButtonDisabled(false);
+                            return 0;
+                        }
+                        return prev - 1;
+                    });
+                }, 1000);
+            })
+            .catch((error) => {
+                console.log(error);
+            })
+    };
 
     return (
         <main className='min-h-[100svh] flex justify-center items-center'>
@@ -82,9 +136,23 @@ const EmailVerification = () => {
                     </div>
                     <div className='flex flex-col gap-2'>
                         <p>Didn't receive an email?</p>
-                        <button className='bg-login-button text-black font-montserrat py-3 rounded-md'>
-                            Send Verification Link Again
-                        </button>
+                        <div className='relative'>
+                            {buttonDisabled && (
+                                <>
+                                    <div className='absolute bg-black opacity-75 w-full h-full rounded-md'></div>
+                                    <div className='absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2'>
+                                        {countdown}s
+                                    </div>
+                                </>
+                            )}
+                            <button
+                                onClick={handleSendVerificationLinkAgain}
+                                className={`bg-login-button text-black font-montserrat py-3 rounded-md w-full ${buttonDisabled ? 'cursor-not-allowed' : ''}`}
+                                disabled={buttonDisabled}
+                            >
+                                Send Verification Link Again
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>

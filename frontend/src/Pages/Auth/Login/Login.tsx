@@ -1,4 +1,4 @@
-import { ChangeEvent, MouseEvent, useState } from 'react'
+import { ChangeEvent, MouseEvent, useRef, useState } from 'react'
 import Logo from '../../../Assets/Logo'
 import { Facebook, Google } from '../../../Assets/LoginRegister'
 import { Link, useNavigate } from 'react-router-dom'
@@ -17,6 +17,8 @@ const Login = () => {
 
     const [error, setError] = useState<string | null>();
 
+    const resetErrorTimeoutRef = useRef<number | null>(null);
+
     const navigate = useNavigate();
 
     const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
@@ -29,32 +31,36 @@ const Login = () => {
     const handleLoginClick = (e: MouseEvent<HTMLButtonElement>) => {
         e.preventDefault();
 
+        if (resetErrorTimeoutRef.current) {
+            clearTimeout(resetErrorTimeoutRef.current);
+        }
+
         const validated = Validator(loginFormData, {
-            loginInfo: 'required|test',
-            password: ['required', 'test'],
-        }, setLoginFormDataError)
+            loginInfo: ['required'],
+            password: ['required', 'min:6'],
+        }, setLoginFormDataError);
 
         if (validated) {
             Auth.login(loginFormData)
                 .then((data) => {
                     const { msg } = data;
                     if (msg === "Please verify your email") {
-                        navigate('/email-verify', { state: { email: loginFormData.loginInfo } })
+                        navigate('/email-verify', { state: { email: loginFormData.loginInfo } });
                     } else {
                         navigate('/');
                     }
                 }).catch((error) => {
                     setError(error.msg);
-                    setTimeout(() => {
-                        setError(null)
+                    resetErrorTimeoutRef.current = window.setTimeout(() => {
+                        setError(null);
                     }, 2000);
-                })
+                });
         } else {
-            setTimeout(() => {
+            resetErrorTimeoutRef.current = window.setTimeout(() => {
                 setLoginFormDataError({});
             }, 2000);
         }
-    }
+    };
 
     return (
         <main className="dark:bg-dark-custom bg-white-custom min-h-svh flex justify-center items-center">
