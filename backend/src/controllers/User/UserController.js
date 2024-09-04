@@ -13,7 +13,6 @@ const setJwtRefreshCookie = require("../../utils/cookies/setJwtRefreshCookie");
 
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
-const sendEmail = require("../../utils/sendEmail");
 
 const include = [Role];
 
@@ -103,6 +102,7 @@ module.exports = {
     try {
       decoded = jwt.verify(jwt_refresh, process.env.JWT_REFRESH_SECRET);
     } catch (err) {
+      console.log("error: ", err);
       if (err.message === "jwt expired") {
         res.cookie("jwt_refresh", "", { maxAge: 1 });
         return res.status(401).json({ msg: "Jwt refresh expired" });

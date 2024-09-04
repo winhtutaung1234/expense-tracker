@@ -16,7 +16,7 @@ const portName = process.env.PORT;
 
 server.use(express.urlencoded({ extended: false }));
 server.use(express.json());
-server.use(cookieParser()); // Place cookieParser before routes that use cookies
+server.use(cookieParser());
 server.use(
   cors({
     origin: "http://localhost:3000",
@@ -27,6 +27,7 @@ server.use(
 server.use("/api", usersRouter);
 
 server.use("/api", auth, accountsRouter);
+
 server.use("/api", auth, isAdmin, currenciesRouter);
 
 server.use(errorHandler);
