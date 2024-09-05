@@ -1,27 +1,36 @@
-import { useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import Logo from '../../Assets/Logo';
 import { NavProps } from '../../Types/Props/Nav';
 import { Modal } from '../Modal';
 import Auth from '../../Services/Auth/Auth';
-import { useNavigate } from 'react-router-dom';
+import { NavLink, useNavigate } from 'react-router-dom';
 
 const Nav = (props: NavProps) => {
     const { user, showNav } = props;
     const [dropdownAnimation, setDropdownAnimation] = useState<'open' | 'close' | null>(null);
     const [showLogoutModal, setShowLogoutModal] = useState(false);
     const navigate = useNavigate();
+    const dropdownRef = useRef<HTMLDivElement>(null);
 
     const handleLogoutClick = () => {
         setShowLogoutModal(true);
-    }
+    };
+
+    const handleScroll = () => {
+        if (dropdownAnimation === "open") {
+            setDropdownAnimation('close');
+        }
+    };
 
     const onClose = () => {
         setShowLogoutModal(false);
-    }
+    };
 
     const toggleDropDown = () => {
-        setDropdownAnimation(prevData => prevData ? prevData === "open" ? "close" : "open" : "open")
-    }
+        setDropdownAnimation((prevData) =>
+            prevData ? (prevData === 'open' ? 'close' : 'open') : 'open'
+        );
+    };
 
     const onConfirm = () => {
         Auth.logout()
@@ -29,9 +38,28 @@ const Nav = (props: NavProps) => {
                 navigate('/login');
             })
             .catch(() => {
+            });
+    };
 
-            })
-    }
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (
+                dropdownRef.current &&
+                !dropdownRef.current.contains(event.target as Node) &&
+                dropdownAnimation === 'open'
+            ) {
+                setDropdownAnimation('close');
+            }
+        };
+
+        document.addEventListener('mousedown', handleClickOutside);
+        document.addEventListener('scroll', handleScroll)
+
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+            document.removeEventListener('close', handleScroll)
+        };
+    }, [dropdownAnimation]);
 
     return (
         <>
@@ -53,17 +81,17 @@ const Nav = (props: NavProps) => {
                     <a>
                         <p>Finance</p>
                     </a>
-                    <div className='relative'>
+                    <div className='relative' ref={dropdownRef}>
                         {user && (
                             <button onClick={toggleDropDown}>{user.name}</button>
                         )}
                         <div
                             className={`absolute dark:bg-[#2f2f2f] rounded-sm border border-dark-yellow py-4 px-12 top-[125%] flex flex-col justify-center items-center gap-4 -translate-y-2 opacity-0
-                            ${dropdownAnimation === 'open' ? "animate-openDropDown" : ""}
-                            ${dropdownAnimation === 'close' ? "animate-closeDropDown" : ""}`}
+                            ${dropdownAnimation === 'open' ? "animate-openDropDown opacity-100" : ""}
+                            ${dropdownAnimation === 'close' ? "animate-closeDropDown opacity-0" : ""}`}
                             style={{ transition: 'opacity 0.25s ease-in-out' }}
                         >
-                            <a>Accounts</a>
+                            <NavLink to="/accounts">Accounts</NavLink>
                             <a>Setting</a>
                             <button onClick={handleLogoutClick}>Logout</button>
                         </div>
@@ -75,6 +103,6 @@ const Nav = (props: NavProps) => {
             {showLogoutModal && <Modal type='logout' onClose={onClose} onConfirm={onConfirm} />}
         </>
     );
-}
+};
 
 export default Nav;

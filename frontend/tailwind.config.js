@@ -18,7 +18,9 @@ export default {
         'login-button': 'linear-gradient(105deg, #BEA41C 6%, #FFDC26 45%, #FDE460 69%, #998417 96%)',
       },
       colors: {
+        'light-gray': "#757575",
         'gray': '#4A4A4A',
+        'dark-gray': "#393939",
         'yellow': "#FFDC26",
         'light-yellow': "#FDE460",
         'dark-yellow': "#BB9D01",

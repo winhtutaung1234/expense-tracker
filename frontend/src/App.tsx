@@ -6,6 +6,7 @@ import { Master } from "./Layout/Auth"
 import Guest from "./Layout/Guest/Guest"
 import { EmailVerification } from "./Pages/Auth/Email"
 import EmailVerified from "./Pages/Auth/Email/EmailVerified"
+import { Account } from "./Pages/Account"
 
 
 function App() {
@@ -25,6 +26,8 @@ function App() {
 
         <Route element={<Master />}>
           <Route path="" element={<Dashboard />} />
+
+          <Route path="/accounts" element={<Account />} />
         </Route>
       </Routes>
     </BrowserRouter>
