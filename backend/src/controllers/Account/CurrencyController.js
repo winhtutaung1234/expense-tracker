@@ -1,5 +1,5 @@
 const asyncHandler = require("express-async-handler");
-const { Currency } = require("../../models");
+const { Currency, Account } = require("../../models");
 
 module.exports = {
   findAll: asyncHandler(async (req, res) => {

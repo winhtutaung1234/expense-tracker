@@ -3,19 +3,22 @@
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up(queryInterface, Sequelize) {
-    return queryInterface.bulkInsert("roles", [
+    await queryInterface.bulkInsert("limits", [
       {
-        name: "User",
+        role_id: 1,
+        max_accounts: 1,
         created_at: new Date(),
         updated_at: new Date(),
       },
       {
-        name: "Premium",
+        role_id: 2,
+        max_accounts: 10,
         created_at: new Date(),
         updated_at: new Date(),
       },
       {
-        name: "Admin",
+        role_id: 3,
+        max_accounts: 20,
         created_at: new Date(),
         updated_at: new Date(),
       },
@@ -23,6 +26,6 @@ module.exports = {
   },
 
   async down(queryInterface, Sequelize) {
-    return queryInterface.bulkDelete("roles", null, {});
+    await queryInterface.bulkDelete("limits", null, {});
   },
 };

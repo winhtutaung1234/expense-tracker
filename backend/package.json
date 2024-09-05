@@ -13,7 +13,8 @@
     "seed:generate": "npx sequelize-cli seed:generate --name",
     "db:seed:all": "npx sequelize-cli db:seed:all",
     "db:seed:undo:all": "npx sequelize-cli db:seed:undo:all",
-    "db:seed": "npx sequelize-cli db:seed --seed"
+    "db:seed": "npx sequelize-cli db:seed --seed",
+    "db:seed:undo": "npx sequelize-cli db:seed:undo --seed"
   },
   "keywords": [],
   "author": "",

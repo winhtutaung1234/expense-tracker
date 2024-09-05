@@ -13,11 +13,6 @@ const validateAccountBody = [
     .notEmpty()
     .isInt()
     .withMessage("Currency id must be an integer"),
-
-  body("description")
-    .notEmpty()
-    .isString()
-    .withMessage("Description must be a string"),
 ];
 
 module.exports = {

@@ -16,12 +16,17 @@ function isOwner(type) {
 
     if (type === "account") {
       const account = await Account.findByPk(id);
+
+      if (!account) {
+        return res.status(404).json({ msg: "Account not found" });
+      }
+
       if (account.user_id === user.id) {
         return next();
       }
     }
 
-    return res.status(403).json({ msg: "Unauthorized to delete" });
+    return res.status(403).json({ msg: "Unauthorized" });
   };
 }
 

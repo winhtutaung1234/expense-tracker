@@ -15,6 +15,23 @@ module.exports = {
         created_at: new Date(),
         updated_at: new Date(),
       },
+      {
+        role_id: 1,
+        name: "Bob",
+        email: "bob@gmail.com",
+        phone_number: "2343432",
+        password: await bcrypt.hash("password", 10),
+        created_at: new Date(),
+        updated_at: new Date(),
+      },
+      {
+        role_id: 3,
+        name: "Kyaw Gyi",
+        email: "kyaw@gmail.com",
+        password: await bcrypt.hash("password", 10),
+        created_at: new Date(),
+        updated_at: new Date(),
+      },
     ]);
   },
 

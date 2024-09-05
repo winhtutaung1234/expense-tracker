@@ -28,7 +28,7 @@ server.use("/api", usersRouter);
 
 server.use("/api", auth, accountsRouter);
 
-server.use("/api", auth, isAdmin, currenciesRouter);
+server.use("/api", auth, currenciesRouter);
 
 server.use(errorHandler);
 

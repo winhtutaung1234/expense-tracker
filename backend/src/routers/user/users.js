@@ -11,15 +11,23 @@ const validator = require("../../middlewares/common/validator");
 const validateId = require("../../middlewares/common/validateId");
 const auth = require("../../middlewares/AuthMiddleware/auth");
 const isAdmin = require("../../middlewares/AuthMiddleware/isAdmin");
+const {
+  restoreUserMiddleware,
+  deleteUserMiddleware,
+  loginMiddleware,
+  reigsterMiddleware,
+} = require("../../middlewares/UserMiddleware");
 const router = express.Router();
+
+router.get("/users", UserController.findAll);
 
 router.get("/verify", auth, UserController.verify);
 
 // register -> issue access and refresh tokens and generate email verification link
-router.post("/users", createUserValidation, validator, UserController.create);
+router.post("/users", reigsterMiddleware, UserController.create);
 
 // login -> issue  access and refresh tokens and generate email verification link
-router.post("/login", loginUserValidation, validator, UserController.login);
+router.post("/login", loginMiddleware, UserController.login);
 
 // logout -> needs access token
 router.post("/logout", auth, UserController.logout);
@@ -28,22 +36,13 @@ router.post("/logout", auth, UserController.logout);
 router.post("/refresh-token", UserController.refresh);
 
 // soft deleted user from db -> only permission admin
-router.delete(
-  "/users/:id",
-  auth,
-  isAdmin,
-  validateId,
-  validator,
-  UserController.destroy
-);
+router.delete("/users/:id", auth, deleteUserMiddleware, UserController.destroy);
 
 // restore user soft deleted from db -> only permission admin
 router.patch(
   "/users/:id/restore",
   auth,
-  isAdmin,
-  validateId,
-  validator,
+  restoreUserMiddleware,
   UserController.restore
 );
 

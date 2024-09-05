@@ -2,15 +2,25 @@ const asyncHandler = require("express-async-handler");
 const { Account } = require("../../models");
 const { Currency } = require("../../models");
 const { User } = require("../../models");
+const AccountResource = require("../../resources/AccountResource");
 
 module.exports = {
   findAll: asyncHandler(async (req, res) => {
     const { user } = req;
+
     const accounts = await Account.findAll({
       where: { user_id: user.id },
       include: [Currency],
     });
-    return res.json(accounts);
+
+    return res.json(AccountResource.collection(accounts));
+  }),
+
+  show: asyncHandler(async (req, res) => {
+    const { id } = req.params;
+
+    const account = await Account.findByPk(id);
+    return res.json(new AccountResource(account).exec());
   }),
 
   create: asyncHandler(async (req, res) => {
@@ -40,34 +50,19 @@ module.exports = {
 
   update: asyncHandler(async (req, res) => {
     const { id } = req.params;
-    const { user } = req;
-    const { ...updatedData } = req.body;
 
-    const account = await Account.findOne({ where: { id, user_id: user.id } });
+    const account = await Account.findByPk(id);
+    if (!account) return res.status(404).json({ msg: "Account not found" });
 
-    if (!account) {
-      return res.status(404).json({ msg: `Account with id ${id} not found` });
-    }
+    await account.update(req.body);
 
-    await account.update({ updatedData });
     return res.json({ msg: "Account updated successfully" });
   }),
 
   destroy: asyncHandler(async (req, res) => {
     const { id } = req.params;
-    const { user } = req;
 
     const account = await Account.findOne({ where: { id } });
-
-    if (!account) {
-      return res.status(404).json({
-        msg: `Account with id ${id} not found`,
-      });
-    }
-
-    if (account.user_id !== user.id) {
-      return res.status(403).json({ msg: "Unauthorized to delete" });
-    }
 
     await account.destroy();
     return res.json({ msg: "Account deleted successfully" });
