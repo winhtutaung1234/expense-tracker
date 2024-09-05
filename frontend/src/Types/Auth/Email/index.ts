@@ -1,5 +1,9 @@
 import VerifyEmailProps from "./VerifyEmailProps";
+import VerifyEmailResponse from "./VerifyEmailResponse";
+import ResendEmailResponse from "./ResendEmailResponse";
 
 export type {
-    VerifyEmailProps
+    VerifyEmailProps,
+    VerifyEmailResponse,
+    ResendEmailResponse,
 }
