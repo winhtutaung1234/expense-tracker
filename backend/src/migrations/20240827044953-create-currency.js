@@ -22,6 +22,11 @@ module.exports = {
         allowNull: false,
         type: Sequelize.STRING,
       },
+      symbol_position: {
+        allowNull: false,
+        type: Sequelize.ENUM("before", "after"),
+        defaultValue: "before",
+      },
       decimal_places: {
         allowNull: false,
         type: Sequelize.INTEGER,
