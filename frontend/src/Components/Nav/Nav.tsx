@@ -3,7 +3,7 @@ import Logo from '../../Assets/Logo';
 import { NavProps } from '../../Types/Props/Nav';
 import { Modal } from '../Modal';
 import Auth from '../../Services/Auth/Auth';
-import { NavLink, useNavigate } from 'react-router-dom';
+import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 
 const Nav = (props: NavProps) => {
     const { user, showNav } = props;
@@ -11,6 +11,13 @@ const Nav = (props: NavProps) => {
     const [showLogoutModal, setShowLogoutModal] = useState(false);
     const navigate = useNavigate();
     const dropdownRef = useRef<HTMLDivElement>(null);
+    const { pathname } = useLocation();
+
+    useEffect(() => {
+        if (dropdownAnimation) {
+            setDropdownAnimation('close');
+        }
+    }, [pathname])
 
     const handleLogoutClick = () => {
         setShowLogoutModal(true);

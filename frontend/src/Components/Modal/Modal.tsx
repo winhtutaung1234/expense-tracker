@@ -6,7 +6,7 @@ const Modal = (ModalProps: ModalProps) => {
     const { type, onClose, onConfirm } = ModalProps;
 
     return (
-        <div className='dark:text-white fixed top-0 right-0 bottom-0 left-0 flex justify-center items-center'>
+        <div className='dark:text-white fixed top-0 right-0 bottom-0 left-0 flex justify-center items-center z-[1000]'>
             {type === "logout" && (
                 <LogoutModal onClose={onClose} onConfirm={onConfirm} />
             )}
