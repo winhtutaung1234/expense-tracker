@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react'
-import { Outlet, useNavigate } from 'react-router-dom'
+import { useEffect, useMemo, useState } from 'react'
+import { Outlet, useLocation, useNavigate } from 'react-router-dom'
 import Auth from '../../Services/Auth/Auth';
 import { User } from '../../Types/User';
 import Nav from '../../Components/Nav/Nav';
@@ -8,6 +8,10 @@ const Master = () => {
     const [showNav, setShowNav] = useState(true);
     const [lastScrollY, setLastScrollY] = useState(0);
     const [user, setUser] = useState<User | null>();
+    const [loading, setLoading] = useState<Boolean>(false);
+    const location = useLocation();
+    const { pathname } = location;
+
 
     const controlNav = () => {
         if (window.scrollY > lastScrollY) {
@@ -33,15 +37,19 @@ const Master = () => {
 
     const navigate = useNavigate();
 
-    useEffect(() => {
+    useMemo(() => {
+        setLoading(true);
         Auth.verify()
             .then((data) => {
                 setUser(data)
+                setLoading(false);
             })
             .catch(() => {
+                setUser(null);
                 navigate('/login');
+                setLoading(false);
             })
-    }, []);
+    }, [pathname]);
 
     useEffect(() => {
         if (user && !user.email_verified) {
@@ -57,8 +65,10 @@ const Master = () => {
                 )
             }
 
-            <div className={`xl:px-36 px-4 ${user && user.email_verified && "mt-40"}`}>
-                <Outlet />
+            <div className={`xl:px-36 px-4 ${user && user.email_verified && "mt-40"} min-h-[100svh]`}>
+                {user && !loading && (
+                    <Outlet />
+                )}
             </div>
         </>
     );

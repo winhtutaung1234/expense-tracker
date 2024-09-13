@@ -1,11 +1,34 @@
-import React from 'react'
+import { useEffect, useState } from 'react'
+import type { Account as AccountType } from '../../Types/Account';
+import AccountService from '../../Services/Account/Account';
+import { Table } from '../../Components/Table';
+import formatDecimal from '../../Utils/FormatDecimal';
 
 const Account = () => {
+
+    const [allAccounts, setAllAccounts] = useState<AccountType[] | undefined>();
+
+    useEffect(() => {
+        AccountService.fetchAccounts()
+            .then((data) => {
+                console.log(data);
+                setAllAccounts(data);
+            })
+            .catch(() => {
+
+            })
+
+        console.log(formatDecimal("100,000.00", 0));
+    }, [])
+
+    useEffect(() => {
+        console.log(allAccounts);
+    }, [])
     return (
         <main className='min-h-[100svh]'>
-            <div className='flex dark:text-white'>
-                <div className='bg-gray border border-light-yellow border-opacity-50 px-6 pt-4 pb-6 flex flex-col gap-5 flex-[0.3] rounded-xl'>
-                    <div className='flex flex-col gap-2'>
+            <div className='flex gap-10 dark:text-white max-lg:flex-col flex-wrap'>
+                <div className='bg-gray border border-light-yellow border-opacity-50 px-6 pt-4 pb-6 flex flex-col gap-5 flex-[0.3] max-lg:w-1/2 mx-auto max-md:w-[65%] max-sm:w-[90%] rounded-xl'>
+                    <div className='flex flex-col gap-2 z-10'>
                         <p className='font-inter text-[18px]'>Account</p>
                         <div className='relative'>
                             <svg className='absolute fill-current text-white opacity-50 w-[25px] top-1/2 -translate-y-1/2 left-2' viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -56,10 +79,19 @@ const Account = () => {
                             />
                         </div>
                     </div>
-                    <button className='text-black bg-login-button min-h-[45px] max-h-[45px] rounded-md shadow-lg mt-4 font-montserrat'>
+                    <button className='text-bla ck bg-login-button min-h-[45px] max-h-[45px] rounded-md shadow-lg mt-4 font-montserrat'>
                         Add Account
                     </button>
                 </div>
+                {
+                    allAccounts && (
+                        <Table<AccountType>
+                            dataSource={allAccounts}
+                        >
+                            hi
+                        </Table>
+                    )
+                }
             </div>
         </main>
     )
