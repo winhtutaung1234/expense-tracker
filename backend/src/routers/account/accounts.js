@@ -11,21 +11,21 @@ const {
 
 const router = express.Router();
 
-router.get("/accounts", readMiddleware, AccountController.findAll);
+router.get("/", readMiddleware, AccountController.findAll);
 
-router.get("/accounts/:id", isOwner("account"), AccountController.show);
+router.get("/:id", isOwner("account"), AccountController.show);
 
-router.post("/accounts", createAccountMiddleware, AccountController.create);
+router.post("/", createAccountMiddleware, AccountController.create);
 
 router.put(
-  "/accounts/:id",
+  "/:id",
   updateAccountMiddleware,
   isOwner("account"), // only owner can update
   AccountController.update
 );
 
 router.delete(
-  "/accounts/:id",
+  "/:id",
   deleteAccountMiddleware,
   isOwner("account"), // only owner can delete
   AccountController.destroy

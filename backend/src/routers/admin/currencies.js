@@ -9,21 +9,13 @@ const {
 
 const router = express.Router();
 
-router.get("/currencies", CurrencyController.findAll);
+router.get("/", CurrencyController.findAll);
 
-router.post("/currencies", createCurrencyMiddleware, CurrencyController.create);
+router.post("/", createCurrencyMiddleware, CurrencyController.create);
 
-router.put(
-  "/currencies/:id",
-  updateCurrencyMiddleware,
-  CurrencyController.update
-);
+router.put("/:id", updateCurrencyMiddleware, CurrencyController.update);
 
-router.delete(
-  "/currencies/:id",
-  deleteCurrencyMiddleware,
-  CurrencyController.delete
-);
+router.delete("/:id", deleteCurrencyMiddleware, CurrencyController.delete);
 
 module.exports = {
   currenciesRouter: router,

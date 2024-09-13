@@ -60,8 +60,6 @@ async function checkDecimalBalance(balance, currency_id) {
   return nonDecimalBalance === 0 && decimalBalance === 0;
 }
 
-checkNonDecimalBalance(20.55, 6).then((resutl) => console.log(resutl));
-
 module.exports = {
   checkNonDecimalBalance,
   checkDecimalBalance,

@@ -1,7 +1,7 @@
 "use strict";
 const { Model } = require("sequelize");
 module.exports = (sequelize, DataTypes) => {
-  class Limit extends Model {
+  class Category extends Model {
     /**
      * Helper method for defining associations.
      * This method is not a part of Sequelize lifecycle.
@@ -9,24 +9,24 @@ module.exports = (sequelize, DataTypes) => {
      */
     static associate(models) {
       // define association here
-      Limit.belongsTo(models.Role, {
-        foreignKey: "role_id",
+      Category.hasMany(models.Transcation, {
+        foreignKey: "category_id",
         onDelete: "CASCADE",
       });
     }
   }
-  Limit.init(
+  Category.init(
     {
-      role_id: DataTypes.BIGINT.UNSIGNED,
-      max_accounts: DataTypes.INTEGER,
+      name: DataTypes.STRING,
+      description: DataTypes.TEXT,
     },
     {
       sequelize,
-      modelName: "Limit",
+      modelName: "Category",
       underscored: true,
-      updatedAt: "updated_at",
       createdAt: "created_at",
+      updatedAt: "updated_at",
     }
   );
-  return Limit;
+  return Category;
 };

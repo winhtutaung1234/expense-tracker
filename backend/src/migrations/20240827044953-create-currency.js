@@ -7,7 +7,7 @@ module.exports = {
         allowNull: false,
         autoIncrement: true,
         primaryKey: true,
-        type: Sequelize.INTEGER,
+        type: Sequelize.BIGINT.UNSIGNED,
       },
       name: {
         allowNull: false,
@@ -29,7 +29,7 @@ module.exports = {
       },
       decimal_places: {
         allowNull: false,
-        type: Sequelize.INTEGER,
+        type: Sequelize.TINYINT.UNSIGNED,
       },
       created_at: {
         allowNull: false,

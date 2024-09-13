@@ -30,6 +30,31 @@ module.exports = {
         updated_at: new Date(),
       },
 
+      {
+        role_id: 1,
+        permission_id: 10, // read_transaction
+        created_at: new Date(),
+        updated_at: new Date(),
+      },
+      {
+        role_id: 1,
+        permission_id: 11, // create_transaction
+        created_at: new Date(),
+        updated_at: new Date(),
+      },
+      {
+        role_id: 1,
+        permission_id: 12, // edit_transaction
+        created_at: new Date(),
+        updated_at: new Date(),
+      },
+      {
+        role_id: 1,
+        permission_id: 13, // delete_transaction (if exists)
+        created_at: new Date(),
+        updated_at: new Date(),
+      },
+
       // Role 2 -> Premium User with account permissions
       {
         role_id: 2,
@@ -52,6 +77,31 @@ module.exports = {
       {
         role_id: 2,
         permission_id: 4, // delete_account
+        created_at: new Date(),
+        updated_at: new Date(),
+      },
+
+      {
+        role_id: 2,
+        permission_id: 10, // read_transaction
+        created_at: new Date(),
+        updated_at: new Date(),
+      },
+      {
+        role_id: 2,
+        permission_id: 11, // create_transaction
+        created_at: new Date(),
+        updated_at: new Date(),
+      },
+      {
+        role_id: 2,
+        permission_id: 12, // edit_transaction
+        created_at: new Date(),
+        updated_at: new Date(),
+      },
+      {
+        role_id: 2,
+        permission_id: 13, // delete_transaction (if exists)
         created_at: new Date(),
         updated_at: new Date(),
       },
@@ -108,6 +158,30 @@ module.exports = {
       {
         role_id: 3,
         permission_id: 9, // restore_user
+        created_at: new Date(),
+        updated_at: new Date(),
+      },
+      {
+        role_id: 3,
+        permission_id: 10, // read_transaction
+        created_at: new Date(),
+        updated_at: new Date(),
+      },
+      {
+        role_id: 3,
+        permission_id: 11, // create_transaction
+        created_at: new Date(),
+        updated_at: new Date(),
+      },
+      {
+        role_id: 3,
+        permission_id: 12, // edit_transaction
+        created_at: new Date(),
+        updated_at: new Date(),
+      },
+      {
+        role_id: 3,
+        permission_id: 13, // delete_transaction
         created_at: new Date(),
         updated_at: new Date(),
       },

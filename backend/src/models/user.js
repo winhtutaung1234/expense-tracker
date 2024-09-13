@@ -84,7 +84,7 @@ module.exports = (sequelize, DataTypes) => {
   }
   User.init(
     {
-      role_id: DataTypes.INTEGER,
+      role_id: DataTypes.BIGINT.UNSIGNED,
       name: DataTypes.STRING,
       email: DataTypes.STRING,
       email_verified: DataTypes.BOOLEAN,

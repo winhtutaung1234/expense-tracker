@@ -5,13 +5,14 @@ const authorization = (permission) => {
     try {
       const { user } = req;
 
+      console.log("user from authorization: ", user);
+
       const role = await Role.findByPk(user.role_id, { include: Permission });
       if (!role) {
         return res.status(404).json({ msg: "Role not found" });
       }
 
       const userPermissions = role.Permissions.map((p) => p.name);
-      console.log("userPermission: ", userPermissions);
 
       const hasPermission = permission.every((p) =>
         userPermissions.includes(p)

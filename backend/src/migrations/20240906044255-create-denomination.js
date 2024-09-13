@@ -7,11 +7,11 @@ module.exports = {
         allowNull: false,
         autoIncrement: true,
         primaryKey: true,
-        type: Sequelize.INTEGER,
+        type: Sequelize.BIGINT.UNSIGNED,
       },
       currency_id: {
         allowNull: false,
-        type: Sequelize.INTEGER,
+        type: Sequelize.BIGINT.UNSIGNED,
       },
       value: {
         allowNull: false,

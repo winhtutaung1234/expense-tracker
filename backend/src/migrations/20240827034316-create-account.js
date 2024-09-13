@@ -7,7 +7,7 @@ module.exports = {
         allowNull: false,
         autoIncrement: true,
         primaryKey: true,
-        type: Sequelize.INTEGER,
+        type: Sequelize.BIGINT.UNSIGNED,
       },
       user_id: {
         allowNull: false,
@@ -23,7 +23,7 @@ module.exports = {
       },
       currency_id: {
         allowNull: false,
-        type: Sequelize.INTEGER,
+        type: Sequelize.BIGINT.UNSIGNED,
       },
       description: {
         type: Sequelize.TEXT,

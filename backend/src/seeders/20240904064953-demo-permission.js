@@ -42,7 +42,7 @@ module.exports = {
         updated_at: new Date(),
       },
 
-      // User permissions -> (soft delete, restore)
+      // User permissions -> (soft delete, restore) -> only for admin
       {
         name: "delete_user",
         created_at: new Date(),
@@ -50,6 +50,28 @@ module.exports = {
       },
       {
         name: "restore_user",
+        created_at: new Date(),
+        updated_at: new Date(),
+      },
+
+      // Transcation permissions -> for authenticated user
+      {
+        name: "read_transcation",
+        created_at: new Date(),
+        updated_at: new Date(),
+      },
+      {
+        name: "create_transcation",
+        created_at: new Date(),
+        updated_at: new Date(),
+      },
+      {
+        name: "edit_transcation",
+        created_at: new Date(),
+        updated_at: new Date(),
+      },
+      {
+        name: "delete_transcation",
         created_at: new Date(),
         updated_at: new Date(),
       },

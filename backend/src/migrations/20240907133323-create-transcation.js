@@ -2,40 +2,40 @@
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up(queryInterface, Sequelize) {
-    await queryInterface.createTable("users", {
+    await queryInterface.createTable("transcations", {
       id: {
         allowNull: false,
         autoIncrement: true,
         primaryKey: true,
-        type: Sequelize.BIGINT.UNSIGNED,
+        type: Sequelize.INTEGER,
       },
-      role_id: {
+      account_id: {
         allowNull: false,
         type: Sequelize.BIGINT.UNSIGNED,
       },
-      name: {
+      category_id: {
         allowNull: false,
-        type: Sequelize.STRING,
+        type: Sequelize.BIGINT.UNSIGNED,
       },
-      email: {
+      transcation_type: {
         allowNull: false,
-        type: Sequelize.STRING,
-        unique: true,
+        type: Sequelize.ENUM("income", "expense", "transfer"),
       },
-      email_verified: {
-        type: Sequelize.BOOLEAN,
-        defaultValue: false,
-      },
-      email_verified_at: {
-        type: Sequelize.DATE,
-      },
-      phone_number: {
-        type: Sequelize.STRING,
-        unique: true,
-      },
-      password: {
+      amount: {
         allowNull: false,
-        type: Sequelize.STRING,
+        type: Sequelize.DECIMAL,
+      },
+      currency_id: {
+        allowNull: false,
+        type: Sequelize.BIGINT.UNSIGNED,
+      },
+      description: {
+        allowNull: false,
+        type: Sequelize.TEXT,
+      },
+      exchange_rate: {
+        allowNull: false,
+        type: Sequelize.DECIMAL(15, 2),
       },
       created_at: {
         allowNull: false,
@@ -45,12 +45,9 @@ module.exports = {
         allowNull: false,
         type: Sequelize.DATE,
       },
-      deleted_at: {
-        type: Sequelize.DATE,
-      },
     });
   },
   async down(queryInterface, Sequelize) {
-    await queryInterface.dropTable("users");
+    await queryInterface.dropTable("transcations");
   },
 };

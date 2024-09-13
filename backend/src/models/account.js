@@ -18,6 +18,11 @@ module.exports = (sequelize, DataTypes) => {
         foreignKey: "user_id",
         onDelete: "CASCADE",
       });
+
+      Account.hasMany(models.Transcation, {
+        foreignKey: "account_id",
+        onDelete: "CASCADE",
+      });
     }
   }
   Account.init(
@@ -25,7 +30,7 @@ module.exports = (sequelize, DataTypes) => {
       user_id: DataTypes.BIGINT.UNSIGNED,
       name: DataTypes.STRING,
       balance: DataTypes.DECIMAL,
-      currency_id: DataTypes.INTEGER,
+      currency_id: DataTypes.BIGINT.UNSIGNED,
       description: DataTypes.TEXT,
     },
     {

@@ -17,7 +17,7 @@ module.exports = (sequelize, DataTypes) => {
   }
   Denomination.init(
     {
-      currency_id: DataTypes.INTEGER,
+      currency_id: DataTypes.BIGINT.UNSIGNED,
       value: DataTypes.DECIMAL,
     },
     {
