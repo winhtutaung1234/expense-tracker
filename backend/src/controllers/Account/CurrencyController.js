@@ -10,8 +10,6 @@ module.exports = {
   create: asyncHandler(async (req, res) => {
     const { name, code, symbol, decimal_places } = req.body;
 
-    console.log("Request body: ", req.body);
-
     const currency = await Currency.create({
       name,
       code,

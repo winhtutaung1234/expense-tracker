@@ -15,6 +15,7 @@ class AccountResource extends Resource {
             name: this.Currency.name,
             code: this.Currency.code,
             symbol: this.Currency.symbol,
+            symbol_position: this.Currency.symbol_position,
             decimal_places: this.Currency.decimal_places,
           }
         : null,
