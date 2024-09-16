@@ -16,13 +16,14 @@ const Validator = <T>(
         }
 
         validationRules.forEach((rule) => {
+            const formattedKey = String(key);
+            const capitalizedKey = formattedKey.charAt(0).toUpperCase() + formattedKey.slice(1);
+            if (!Errors[key]) {
+                Errors[key] = [];
+            }
+
             if (rule === "required") {
                 if (!RequiredRule(data[key as keyof T] as string | number | boolean)) {
-                    if (!Errors[key]) {
-                        Errors[key] = [];
-                    }
-                    const formattedKey = String(key);
-                    const capitalizedKey = formattedKey.charAt(0).toUpperCase() + formattedKey.slice(1);
                     Errors[key]!.push(`${capitalizedKey} is required.`);
                     continueProcess = false;
                 }
@@ -32,13 +33,14 @@ const Validator = <T>(
                 const [_, length] = rule.split(':');
                 const minLength = parseInt(length, 10);
                 if (!MinRule(minLength, data[key as keyof T] as string | number)) {
-                    if (!Errors[key]) {
-                        Errors[key] = [];
-                    }
-                    const formattedKey = String(key);
-                    const capitalizedKey = formattedKey.charAt(0).toUpperCase() + formattedKey.slice(1);
                     Errors[key]!.push(`${capitalizedKey} must be at least ${minLength}.`);
                     continueProcess = false;
+                }
+            }
+
+            if (rule === "number") {
+                if (!numberRule(data[key as keyof T] as string | number)) {
+                    Errors[key]!.push(`${capitalizedKey} must be a number.`);
                 }
             }
         });
@@ -50,17 +52,22 @@ const Validator = <T>(
 
 
 
-const RequiredRule = (value: string | number | boolean) => {
+const RequiredRule = (value: string | number | boolean): Boolean => {
     return Boolean(value);
 }
 
-const MinRule = (length: number, value: string | number) => {
+const MinRule = (length: number, value: string | number): Boolean => {
     if (typeof value === "number") {
         return Boolean(value >= length);
     }
     if (typeof value === "string") {
         return Boolean(value.length >= length);
     }
+    return false;
+}
+
+const numberRule = (value: string | number): Boolean => {
+    return Boolean(Number(value));
 }
 
 export default Validator;

@@ -15,11 +15,12 @@ const Table = <T,>({ children, dataSource }: TableProps<T>) => {
       .map(child => child.props);
 
     setColumns(columnProps);
+    setAllFilteredData(dataSource);
   }, [children, dataSource]);
 
   return (
     <TableContext.Provider value={{ filteredData, setAllFilteredData, columns }}>
-      <table className='flex-[0.7] text-left h-full'>
+      <table className='text-left'>
         <thead>
           <tr className='font-inter text-[18px]'>
             {columns.length > 0 && columns.map((column, index) => (

@@ -27,3 +27,20 @@ html.dark {
 body {
     background: linear-gradient(to bottom right, var(--gradient-start), var(--gradient-end));
 }
+
+.scrollBar::-webkit-scrollbar {
+    width: 6px;
+}
+
+.scrollBar::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.scrollBar::-webkit-scrollbar-thumb {
+    background: gold;
+    border-radius: 10px;
+}
+
+.scrollBar::-webkit-scrollbar-thumb:hover {
+    background: darkgoldenrod;
+}

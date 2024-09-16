@@ -13,9 +13,11 @@ const Error = (props: ErrorProps) => {
         }
     }, [allErrors, showError])
 
-    return (
-        <div className='text-red-500 self-start'>{errorMessage}</div>
-    )
+    if (errorMessage) {
+        return (
+            <div className='text-red-500 self-start m-0 p-0'>{errorMessage}</div>
+        )
+    }
 }
 
 export default Error
