@@ -1,7 +1,7 @@
-import React from 'react';
+import React, { ReactElement } from 'react';
 
 type TableProps<T> = {
-    children: React.ReactNode;
+    children: ReactElement[];
     dataSource: T[];
 };
 

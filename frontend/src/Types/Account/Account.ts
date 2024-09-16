@@ -9,7 +9,7 @@ type Account = {
     currency_id: number;
     created_at: string;
     updated_at: string;
-    Currency: Currency;
+    currency: Currency;
 }
 
 export default Account;
