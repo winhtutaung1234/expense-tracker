@@ -24,6 +24,9 @@ export default {
         'yellow': "#FFDC26",
         'light-yellow': "#FDE460",
         'dark-yellow': "#BB9D01",
+        'dark-green': "#009652",
+        'primary': "#2196F3",
+        'danger': "#F44336",
       },
       dropShadow: {
         'logo': "0px 4px 4px rgba(255,211,94,1)"
