@@ -1,7 +1,7 @@
 require("dotenv").config();
 
 const { EmailVerificationToken } = require("../../models");
-const generateToken = require("../generateToken");
+const generateToken = require("../token/generateToken");
 const bcrypt = require("bcrypt");
 
 async function generateEmailVerificationToken({ id, email }) {

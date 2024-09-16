@@ -2,7 +2,7 @@ require("dotenv").config();
 
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
-const { RefreshToken } = require("../models");
+const { RefreshToken } = require("../../models");
 
 async function generateAccessAndRefreshTokens(user) {
   // check if refresh token already exists

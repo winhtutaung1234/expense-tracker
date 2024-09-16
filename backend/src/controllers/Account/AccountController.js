@@ -77,7 +77,7 @@ module.exports = {
       }
     }
 
-    const account = await Account.create({
+    const result = await Account.create({
       user_id: user.id,
       name,
       balance,
@@ -85,7 +85,16 @@ module.exports = {
       description,
     });
 
-    return res.status(201).json(account);
+    console.log("fuck: ", result);
+
+    console.log("fuck fuck fuck: ", result.id);
+
+    const account = await Account.findOne({
+      where: { id: result.id },
+      include: Currency,
+    });
+
+    return res.status(201).json(new AccountResource(account).exec());
   }),
 
   update: asyncHandler(async (req, res) => {

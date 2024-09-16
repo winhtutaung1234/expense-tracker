@@ -1,4 +1,5 @@
 // src/validation/transactionValidation.js
+const { Denomination } = require("../../models");
 
 const { body } = require("express-validator");
 
@@ -17,15 +18,29 @@ const transactionValidation = [
       'Transaction type must be one of "income", "expense", or "transfer"'
     ),
 
-  body("amount")
-    .isDecimal({ decimal_digits: "0,2" })
-    .withMessage(
-      "Amount must be a valid decimal value with up to 2 decimal places"
-    ),
-
   body("currency_id")
     .isInt({ min: 1 })
     .withMessage("Currency ID must be a positive integer"),
+
+  body("amount").custom(async (value, { req }) => {
+    const denominations = await Denomination.findAll({
+      where: { currency_id: req.body.currency_id },
+    });
+
+    if (denominations.length === 0) {
+      throw new Error("No denominations found for the given currency");
+    }
+
+    const isValid = denominations.some((deno) => {
+      return value % deno.value === 0;
+    });
+
+    if (!isValid) {
+      throw new Error("Invalid amount for the given currency denominations");
+    }
+
+    return true;
+  }),
 
   body("description")
     .optional()

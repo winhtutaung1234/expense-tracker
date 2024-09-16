@@ -5,7 +5,7 @@ const { Role } = require("../../models");
 const { RefreshToken } = require("../../models");
 
 const asyncHandler = require("express-async-handler");
-const generateAccessAndRefreshTokens = require("../../utils/generateAccessAndRefreshTokens");
+const generateAccessAndRefreshTokens = require("../../utils/token/generateAccessAndRefreshTokens");
 const UserResource = require("../../resources/UserResource");
 const generateEmailVerificationToken = require("../../utils/emailVerification/generateEmailVerificationToken");
 const sendEmailQueue = require("../../queues/emailQueue");

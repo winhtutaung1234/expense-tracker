@@ -4,6 +4,9 @@ const asyncHandler = require("express-async-handler");
 const { Transcation } = require("../../models");
 const { Account } = require("../../models");
 const { Currency } = require("../../models");
+const { Denomination } = require("../../models");
+const currencyConverter = require("../../currencies/currencyConverter");
+const updateAccountBalance = require("../../utils/updateAccountBalance");
 
 module.exports = {
   findAll: asyncHandler(async (req, res) => {
@@ -24,43 +27,24 @@ module.exports = {
       description,
     } = req.body;
 
-    let exchange_rate = 1;
-    let converted_amount = amount;
+    // convert appropiate currency based on account's currecny
+    const { exchange_rate, convertedAmount } = await currencyConverter(
+      account_id,
+      currency_id,
+      amount
+    );
 
-    const account = await Account.findByPk(account_id, { include: Currency });
-    const currency = await Currency.findByPk(currency_id);
+    await updateAccountBalance(account_id, convertedAmount, transcation_type);
 
-    if (!account) {
-      return res.status(404).json({ msg: "Account not found" });
-    }
-
-    if (account.currency_id !== currency_id) {
-      const transcationCurrency = currency;
-      const accountCurrency = account.currency;
-
-      if (!transcationCurrency || !accountCurrency) {
-        return res
-          .status(404)
-          .json({ msg: "Account or Transcation currency not found" });
-      }
-
-      const api = `https://v6.exchangerate-api.com/v6/${process.env.EXCHANGE_RATE_API_KEY}/pair/${transcationCurrency.code}/${accountCurrency.code}/${amount}`;
-
-      const res = await fetch(api);
-      const data = await res.json();
-
-      exchange_rate = data.conversion_rate;
-      converted_amount = data.converison_result;
-    }
-
+    // Create the transaction with the converted amount and exchange rate
     const transcation = await Transcation.create({
       account_id,
       category_id,
       transcation_type,
-      amount: converted_amount,
+      amount: convertedAmount,
       currency_id,
       description,
-      exchange_rate,
+      exchange_rate: exchange_rate,
     });
 
     return res.status(201).json(transcation);

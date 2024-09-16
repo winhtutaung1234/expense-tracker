@@ -6,7 +6,7 @@ const sendEmail = require("../../utils/sendEmail");
 const generateEmailVerificationToken = require("../../utils/emailVerification/generateEmailVerificationToken");
 const validateEmailVerificationToken = require("../../utils/emailVerification/validateEmailVerificationToken");
 const sendEmailQueue = require("../../queues/emailQueue");
-const generateAccessAndRefreshTokens = require("../../utils/generateAccessAndRefreshTokens");
+const generateAccessAndRefreshTokens = require("../../utils/token/generateAccessAndRefreshTokens");
 const jwt = require("jsonwebtoken");
 const setJwtRefreshCookie = require("../../utils/cookies/setJwtRefreshCookie");
 

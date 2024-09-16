@@ -52,7 +52,7 @@ module.exports = {
       {
         name: "Myanmar Kyat",
         code: "MMK",
-        symbol: "K",
+        symbol: "Ks",
         decimal_places: 0,
         symbol_position: "after",
         created_at: new Date(),
