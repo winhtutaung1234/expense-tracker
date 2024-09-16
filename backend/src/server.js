@@ -8,8 +8,8 @@ const auth = require("./middlewares/AuthMiddleware/auth");
 const { usersRouter } = require("./routers/user/users");
 const { accountsRouter } = require("./routers/account/accounts");
 const { currenciesRouter } = require("./routers/admin/currencies");
-const { categoriesRouter } = require("./routers/category/category");
-const { transcationsRouter } = require("./routers/transcation/transcation");
+const { categoriesRouter } = require("./routers/category/categories");
+const { transcationsRouter } = require("./routers/transcation/transcations");
 
 const server = express();
 
