@@ -4,6 +4,8 @@ import { XOR } from "../../../../Types/Operations";
 type ColumnPropsBase<T> = {
     title: string;
     className?: string;
+    width?: string;
+    sort?: boolean;
 };
 
 type DataIndexRequired<T> = ColumnPropsBase<T> & {

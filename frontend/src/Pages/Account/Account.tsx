@@ -8,6 +8,8 @@ import Currency from '../../Services/Currency/Currency';
 import { Currency as CurrencyType } from '../../Types/Currency';
 import Validator from '../../Validator';
 import Error from '../../Components/Errors';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faEdit, faEye, faTrash } from '@fortawesome/free-solid-svg-icons';
 
 const Account = () => {
 
@@ -92,6 +94,12 @@ const Account = () => {
                     setAllAccounts((prevData) => {
                         return prevData ? [...prevData, data] : [data];
                     });
+                    setAccountFormData({
+                        balance: "",
+                        currency_id: "",
+                        name: "",
+                        description: ""
+                    });
                 })
                 .catch((error) => {
                     setError(error.msg);
@@ -107,9 +115,9 @@ const Account = () => {
     }
 
     return (
-        <main className='min-h-[100svh]'>
+        <main className='min-h-[200svh]'>
             <div className='flex gap-10 dark:text-white max-lg:flex-col flex-wrap'>
-                <form className='bg-gray border border-light-yellow border-opacity-50 px-6 pt-4 pb-6 flex flex-col gap-5 flex-[0.3] max-lg:w-1/2 mx-auto max-md:w-[65%] max-sm:w-[90%] rounded-xl'>
+                <form className='bg-gray border border-light-yellow border-opacity-50 px-6 pt-4 pb-6 flex flex-col gap-5 flex-[0.3] max-lg:w-1/2 mx-auto max-md:w-[65%] max-sm:w-[90%] rounded-xl h-full sticky'>
                     <div className='flex flex-col gap-2 z-10'>
                         <p className='font-inter text-[18px]'>Account</p>
                         <div className='relative'>
@@ -200,7 +208,7 @@ const Account = () => {
                     </button>
                 </form>
                 <div className='flex-[0.7] flex flex-col'>
-                    <p className='font-inter text-[32px] text-light-yellow mb-10'>Your Accounts</p>
+                    <p className='font-inter text-[32px] text-light-yellow mb-6'>Your Accounts</p>
                     {
                         allAccounts && (
                             <Table<AccountType>
@@ -209,34 +217,31 @@ const Account = () => {
                                 <Column
                                     dataIndex="name"
                                     title="Account"
+                                    sort
                                 />
                                 <Column
                                     dataIndex="balance"
                                     title="Balance"
+                                    sort
                                 />
                                 <Column
                                     dataIndex="description"
                                     title="Description"
                                     className='text-[12px]'
+                                    width='45%'
                                 />
                                 <Column
                                     title="Action"
                                     render={() => (
-                                        <div className='flex gap-3'>
+                                        <div className='flex gap-4'>
                                             <a>
-                                                <svg viewBox="0 0 576 512" xmlns="http://www.w3.org/2000/svg" className='fill-current text-dark-green w-[30px]'>
-                                                    <path d="M572.52 241.4C518.29 135.59 410.93 64 288 64S57.68 135.64 3.48 241.41a32.35 32.35 0 0 0 0 29.19C57.71 376.41 165.07 448 288 448s230.32-71.64 284.52-177.41a32.35 32.35 0 0 0 0-29.19zM288 400a144 144 0 1 1 144-144 143.93 143.93 0 0 1-144 144zm0-240a95.31 95.31 0 0 0-25.31 3.79 47.85 47.85 0 0 1-66.9 66.9A95.78 95.78 0 1 0 288 160z" />
-                                                </svg>
+                                                <FontAwesomeIcon icon={faEye} className='text-success text-[20px]' />
                                             </a>
                                             <a>
-                                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" className='fill-current text-primary w-[26px]'>
-                                                    <path d="M471.6 21.7c-21.9-21.9-57.3-21.9-79.2 0L362.3 51.7l97.9 97.9 30.1-30.1c21.9-21.9 21.9-57.3 0-79.2L471.6 21.7zm-299.2 220c-6.1 6.1-10.8 13.6-13.5 21.9l-29.6 88.8c-2.9 8.6-.6 18.1 5.8 24.6s15.9 8.7 24.6 5.8l88.8-29.6c8.2-2.7 15.7-7.4 21.9-13.5L437.7 172.3 339.7 74.3 172.4 241.7zM96 64C43 64 0 107 0 160L0 416c0 53 43 96 96 96l256 0c53 0 96-43 96-96l0-96c0-17.7-14.3-32-32-32s-32 14.3-32 32l0 96c0 17.7-14.3 32-32 32L96 448c-17.7 0-32-14.3-32-32l0-256c0-17.7 14.3-32 32-32l96 0c17.7 0 32-14.3 32-32s-14.3-32-32-32L96 64z" />
-                                                </svg>
+                                                <FontAwesomeIcon icon={faEdit} className='text-primary text-[20px]' />
                                             </a>
                                             <a>
-                                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" className='fill-current text-danger w-[21px]'>
-                                                    <path d="M135.2 17.7L128 32 32 32C14.3 32 0 46.3 0 64S14.3 96 32 96l384 0c17.7 0 32-14.3 32-32s-14.3-32-32-32l-96 0-7.2-14.3C307.4 6.8 296.3 0 284.2 0L163.8 0c-12.1 0-23.2 6.8-28.6 17.7zM416 128L32 128 53.2 467c1.6 25.3 22.6 45 47.9 45l245.8 0c25.3 0 46.3-19.7 47.9-45L416 128z" />
-                                                </svg>
+                                                <FontAwesomeIcon icon={faTrash} className='text-danger text-[20px]' />
                                             </a>
                                         </div>
                                     )}

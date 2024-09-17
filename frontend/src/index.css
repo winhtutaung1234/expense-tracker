@@ -26,6 +26,7 @@ html.dark {
 
 body {
     background: linear-gradient(to bottom right, var(--gradient-start), var(--gradient-end));
+    box-sizing: border-box;
 }
 
 .scrollBar::-webkit-scrollbar {

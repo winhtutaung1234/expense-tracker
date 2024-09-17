@@ -3,11 +3,15 @@ import { TableContext } from '../TableContext';
 import { ColumnProps, TableProps } from '../Types/Props';
 import { TableHeader } from '../TableHeader';
 import { TableRow } from '../TableRow';
+import { SortConfig } from '../Types/Sort';
 
 const Table = <T,>({ children, dataSource }: TableProps<T>) => {
   const [filteredData, setAllFilteredData] = useState<T[]>(dataSource);
 
   const [columns, setColumns] = useState<ColumnProps<T>[]>([]);
+  const [searchTerm, setSearchTerm] = useState<string>('');
+  const [sortConfig, setSortConfig] = useState<SortConfig<T>>({ key: "", direction: "none" });
+  const [filters, setFilters] = useState<{ [key: string]: any }>({});
 
   useEffect(() => {
     const columnProps = React.Children.toArray(children)
@@ -15,16 +19,34 @@ const Table = <T,>({ children, dataSource }: TableProps<T>) => {
       .map(child => child.props);
 
     setColumns(columnProps);
-    setAllFilteredData(dataSource);
-  }, [children, dataSource]);
+  }, [children]);
+
+  useEffect(() => {
+    const updatedData = [...dataSource];
+
+    if (sortConfig && sortConfig.key) {
+      const { key, direction } = sortConfig;
+      const sortOrder = direction === 'asc' ? 1 : -1;
+
+      updatedData.sort((a, b) => {
+        if (a[key] < b[key]) return -1 * sortOrder;
+        if (a[key] > b[key]) return 1 * sortOrder;
+        return 0;
+      });
+    }
+
+    setAllFilteredData(updatedData);
+  }, [dataSource, sortConfig]);
+
+
 
   return (
-    <TableContext.Provider value={{ filteredData, setAllFilteredData, columns }}>
-      <table className='text-left'>
+    <TableContext.Provider value={{ filteredData, setAllFilteredData, columns, sortConfig, setSortConfig }}>
+      <table className='text-left w-full'>
         <thead>
           <tr className='font-inter text-[18px]'>
             {columns.length > 0 && columns.map((column, index) => (
-              <TableHeader key={index} {...column} />
+              <TableHeader<T> key={index} {...column} />
             ))}
           </tr>
         </thead>
