@@ -8,15 +8,13 @@ const {
   checkDecimalBalance,
   checkNonDecimalBalance,
 } = require("../../utils/denomination/isValidBalance");
+const AccountService = require("../../services/AccountService");
 
 module.exports = {
   findAll: asyncHandler(async (req, res) => {
     const { user } = req;
 
-    const accounts = await Account.findAll({
-      where: { user_id: user.id },
-      include: [Currency],
-    });
+    const accounts = await AccountService.getAllAccounts(user.id);
 
     return res.json(AccountResource.collection(accounts));
   }),
@@ -24,7 +22,7 @@ module.exports = {
   show: asyncHandler(async (req, res) => {
     const { id } = req.params;
 
-    const account = await Account.findByPk(id);
+    const account = await AccountService.getAccount(id);
     return res.json(new AccountResource(account).exec());
   }),
 
@@ -99,21 +97,33 @@ module.exports = {
 
   update: asyncHandler(async (req, res) => {
     const { id } = req.params;
+    const { user_id, name, balance, currency_id, description } = req.body;
 
-    const account = await Account.findByPk(id);
-    if (!account) return res.status(404).json({ msg: "Account not found" });
-
-    await account.update(req.body);
-
-    return res.json({ msg: "Account updated successfully" });
+    try {
+      await AccountService.updateAccount(id, {
+        user_id,
+        name,
+        balance,
+        currency_id,
+        description,
+      });
+    } catch (err) {
+      return res
+        .status(400)
+        .json({ msg: err.message || "Account update failed" });
+    }
   }),
 
   destroy: asyncHandler(async (req, res) => {
     const { id } = req.params;
 
-    const account = await Account.findOne({ where: { id } });
-
-    await account.destroy();
-    return res.json({ msg: "Account deleted successfully" });
+    try {
+      await AccountService.deleteAccount(id);
+      return res.json({ msg: "Account deleted successfully" });
+    } catch (err) {
+      return res
+        .status(400)
+        .json({ msg: err.message || "Account delete failed" });
+    }
   }),
 };

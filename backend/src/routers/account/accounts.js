@@ -13,7 +13,7 @@ const router = express.Router();
 
 router.get("/", readMiddleware, AccountController.findAll);
 
-router.get("/:id", isOwner("account"), AccountController.show);
+router.get("/:id", readMiddleware, isOwner("account"), AccountController.show);
 
 router.post("/", createAccountMiddleware, AccountController.create);
 
