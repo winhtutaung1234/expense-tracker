@@ -4,7 +4,7 @@ const TableRow = <T,>({ data, column }: TableRowProps<T>) => {
 
     const { className = "" } = column
 
-    if (column.dataIndex) {
+    if (column.dataIndex && !column.render) {
         const cellValue = data[column.dataIndex as keyof T];
 
         if (cellValue) {
@@ -24,7 +24,7 @@ const TableRow = <T,>({ data, column }: TableRowProps<T>) => {
 
         return (
             <td className={`font-montserrat py-4 px-3 pt-3 ${className}`}>
-                {column.render()}
+                {column.render(data)}
             </td>
         )
     }

@@ -4,7 +4,7 @@ import { ColumnProps } from '../Types/Props';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faSort, faSortDown, faSortUp } from '@fortawesome/free-solid-svg-icons';
 import TableContextType from '../Types/TableContextType';
-import { SortConfig, SortDirection } from '../Types/Sort';
+import { SortDirection } from '../Types/Sort';
 
 const TableHeader = <T,>({ title, width, sort, dataIndex }: ColumnProps<T>) => {
     const [sortState, setSortState] = useState<SortDirection | null>(null);
@@ -58,7 +58,7 @@ const TableHeader = <T,>({ title, width, sort, dataIndex }: ColumnProps<T>) => {
     };
 
     return (
-        <th className="font-inter text-[18px] pb-4 px-3 pt-3" style={{ width: width || 'auto' }}>
+        <th className={`font-inter text-[18px] pb-4 px-3 pt-3 ${sort && "cursor-pointer"}`} style={{ width: width || 'auto' }}>
             <div className='flex justify-between items-center gap-2' onClick={handleClick}>
                 <p>{title}</p>
                 {getSortIcon()}
@@ -67,4 +67,4 @@ const TableHeader = <T,>({ title, width, sort, dataIndex }: ColumnProps<T>) => {
     );
 };
 
-export default TableHeader;
+export default TableHeader; 

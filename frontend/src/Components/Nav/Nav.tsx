@@ -79,9 +79,7 @@ const Nav = (props: NavProps) => {
                     </div>
                 </div>
                 <div className='flex flex-[0.7] justify-between z-20 dark:text-white'>
-                    <a>
-                        <p>Dashboard</p>
-                    </a>
+                    <NavLink to={"/"}>Dashboard</NavLink>
                     <a>
                         <p>Transactions</p>
                     </a>

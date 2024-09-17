@@ -1,14 +1,18 @@
 import React from 'react'
 import LogoutModal from './LogoutModal'
 import { ModalProps } from '../../Types/Props/Modal'
+import WarningModal from './WarningModal';
 
 const Modal = (ModalProps: ModalProps) => {
-    const { type, onClose, onConfirm } = ModalProps;
+    const { type, onClose, onConfirm, text, cancelButtonText, confirmButtonText } = ModalProps;
 
     return (
         <div className='dark:text-white fixed top-0 right-0 bottom-0 left-0 flex justify-center items-center z-[1000]'>
             {type === "logout" && (
                 <LogoutModal onClose={onClose} onConfirm={onConfirm} />
+            )}
+            {type === "warning" && (
+                <WarningModal onClose={onClose} onConfirm={onConfirm} text={text || ""} cancelButtonText={cancelButtonText || ""} confirmButtonText={confirmButtonText || ""} />
             )}
             <div className='fixed top-0 right-0 left-0 bottom-0 bg-black opacity-25'></div>
         </div>

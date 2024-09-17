@@ -20,6 +20,23 @@ class Account {
         }
     }
 
+    static async deleteAccount(id: string | number): Promise<{ msg: string }> {
+        try {
+            const response = await api.delete<{ msg: string }>(`/accounts/${id}`);
+            return response.data;
+        } catch (error) {
+            throw error;
+        }
+    }
+
+    static async getAccount(id: string | number): Promise<AccountType> {
+        try {
+            const response = await api.get<AccountType>(`/accounts/${id}`);
+            return response.data;
+        } catch (error) {
+            throw error;
+        }
+    }
 }
 
 export default Account;

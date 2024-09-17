@@ -10,34 +10,38 @@ import Validator from '../../Validator';
 import Error from '../../Components/Errors';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faEdit, faEye, faTrash } from '@fortawesome/free-solid-svg-icons';
+import { Modal } from '../../Components/Modal';
 
 const Account = () => {
 
-    const [allAccounts, setAllAccounts] = useState<AccountType[] | undefined>();
-    const [allCurrencies, setAllCurrencies] = useState<CurrencyType[] | undefined>();
+    //Data
+    const [allAccounts, setAllAccounts] = useState<AccountType[]>([]);
+    const [allCurrencies, setAllCurrencies] = useState<CurrencyType[]>([]);
     const [accountFormData, setAccountFormData] = useState<AccountForm>({
         balance: "",
         currency_id: "",
         name: "",
         description: ""
     });
+
+    //Error
     const [accountFormDataError, setAccountFormDataError] = useState<Partial<Record<keyof AccountForm, string[]>>>();
     const resetErrorTimeoutRef = useRef<number | null>(null);
     const [error, setError] = useState<string | null>();
 
+    //Modal
+    const [showWarningModal, setShowWarningModal] = useState(false);
+
+    //Delete
+    const [selectedDeleteID, setSelectedDeleteID] = useState<string | number | null>(null);
+
+    //Edit
+    const [selectedEditID, setSelectedEditID] = useState<string | number | null>(null);
+
     useEffect(() => {
         AccountService.fetchAccounts()
             .then((data) => {
-                let modifiedData = data.map((account) => {
-                    let modifiedBalance;
-                    modifiedBalance = formatDecimal(account.balance, account.currency.decimal_places)
-                    modifiedBalance = formatCurrencySymbol(modifiedBalance, account.currency.symbol, account.currency.symbol_position)
-                    return {
-                        ...account,
-                        balance: modifiedBalance
-                    }
-                });
-                setAllAccounts(modifiedData);
+                setAllAccounts(data);
             })
             .catch(() => {
 
@@ -56,6 +60,12 @@ const Account = () => {
             .catch(() => {
 
             })
+
+        return () => {
+            if (resetErrorTimeoutRef.current) {
+                clearTimeout(resetErrorTimeoutRef.current);
+            }
+        };
     }, [])
 
     const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
@@ -114,8 +124,45 @@ const Account = () => {
         }
     }
 
+    const handleDeleteAccountClick = (id: string | number) => {
+        setSelectedDeleteID(id);
+        setShowWarningModal(true);
+    }
+
+    const confirmDelete = () => {
+        console.log(selectedDeleteID);
+        if (!selectedDeleteID) return;
+        AccountService.deleteAccount(selectedDeleteID)
+            .then(() => {
+                setAllAccounts((prevAccounts) => {
+                    return prevAccounts.filter((account) => account.id !== selectedDeleteID);
+                });
+                setSelectedDeleteID(null);
+                setShowWarningModal(false);
+            })
+            .catch(() => {
+
+            })
+    }
+
+    const rejectDelete = () => {
+        setSelectedDeleteID(null);
+        setShowWarningModal(false);
+    }
+
+    const handleEditClick = (id: string | number) => {
+        AccountService.getAccount(id)
+            .then((data) => {
+                console.log(data);
+            })
+            .catch(() => {
+
+            })
+    }
+
     return (
         <main className='min-h-[200svh]'>
+            {showWarningModal && <Modal onConfirm={confirmDelete} onClose={rejectDelete} type='warning' confirmButtonText='Delete' text='Are you sure you want to delete this Account?' />}
             <div className='flex gap-10 dark:text-white max-lg:flex-col flex-wrap'>
                 <form className='bg-gray border border-light-yellow border-opacity-50 px-6 pt-4 pb-6 flex flex-col gap-5 flex-[0.3] max-lg:w-1/2 mx-auto max-md:w-[65%] max-sm:w-[90%] rounded-xl h-full sticky'>
                     <div className='flex flex-col gap-2 z-10'>
@@ -217,13 +264,18 @@ const Account = () => {
                                 <Column
                                     dataIndex="name"
                                     title="Account"
-                                    sort
                                 />
                                 <Column
-                                    dataIndex="balance"
                                     title="Balance"
+                                    dataIndex="balance"
                                     sort
+                                    render={(data: AccountType) => {
+                                        let modifiedBalance = formatDecimal(data.balance, data.currency.decimal_places);
+                                        modifiedBalance = formatCurrencySymbol(modifiedBalance, data.currency.symbol, data.currency.symbol_position);
+                                        return modifiedBalance;
+                                    }}
                                 />
+
                                 <Column
                                     dataIndex="description"
                                     title="Description"
@@ -232,19 +284,21 @@ const Account = () => {
                                 />
                                 <Column
                                     title="Action"
-                                    render={() => (
-                                        <div className='flex gap-4'>
-                                            <a>
-                                                <FontAwesomeIcon icon={faEye} className='text-success text-[20px]' />
-                                            </a>
-                                            <a>
-                                                <FontAwesomeIcon icon={faEdit} className='text-primary text-[20px]' />
-                                            </a>
-                                            <a>
-                                                <FontAwesomeIcon icon={faTrash} className='text-danger text-[20px]' />
-                                            </a>
-                                        </div>
-                                    )}
+                                    render={(data: AccountType) => {
+                                        return (
+                                            <div className='flex gap-4'>
+                                                <a>
+                                                    <FontAwesomeIcon icon={faEye} className='text-success text-[20px]' />
+                                                </a>
+                                                <button onClick={() => handleEditClick(data.id)}>
+                                                    <FontAwesomeIcon icon={faEdit} className='text-primary text-[20px]' />
+                                                </button>
+                                                <button onClick={() => handleDeleteAccountClick(data.id)}>
+                                                    <FontAwesomeIcon icon={faTrash} className='text-danger text-[20px]' />
+                                                </button>
+                                            </div>
+                                        )
+                                    }}
                                 />
                             </Table>
                         )

@@ -10,12 +10,12 @@ type ColumnPropsBase<T> = {
 
 type DataIndexRequired<T> = ColumnPropsBase<T> & {
     dataIndex: keyof T;
-    render?: never;
+    render?: (data: T) => ReactElement | string | number;
 };
 
 type RenderRequired<T> = ColumnPropsBase<T> & {
     dataIndex?: never;
-    render: () => ReactElement;
+    render: (data: T) => ReactElement | string | number;
 };
 
 type ColumnProps<T> = XOR<DataIndexRequired<T>, RenderRequired<T>>;

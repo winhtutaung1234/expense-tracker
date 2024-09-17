@@ -29,8 +29,22 @@ const Table = <T,>({ children, dataSource }: TableProps<T>) => {
       const sortOrder = direction === 'asc' ? 1 : -1;
 
       updatedData.sort((a, b) => {
-        if (a[key] < b[key]) return -1 * sortOrder;
-        if (a[key] > b[key]) return 1 * sortOrder;
+        const aValue = a[key];
+        const bValue = b[key];
+
+        const aNumber = Number(aValue);
+        const bNumber = Number(bValue);
+
+        if (!isNaN(aNumber) && !isNaN(bNumber)) {
+          return (aNumber - bNumber) * sortOrder;
+        }
+
+        if (typeof aValue === 'string' && typeof bValue === 'string') {
+          return (aValue.localeCompare(bValue)) * sortOrder;
+        }
+
+        if (aValue < bValue) return -1 * sortOrder;
+        if (aValue > bValue) return 1 * sortOrder;
         return 0;
       });
     }
