@@ -38,6 +38,7 @@ const Account = () => {
     //Edit
     const [selectedEditID, setSelectedEditID] = useState<string | number | null>(null);
 
+    //Fetch Necessary Data
     useEffect(() => {
         AccountService.fetchAccounts()
             .then((data) => {
@@ -68,27 +69,14 @@ const Account = () => {
         };
     }, [])
 
-    const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
+    const handleInputChange = (e: ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
         setAccountFormData((prevData) => ({
             ...prevData,
             [e.target.name]: e.target.value
         }))
     }
 
-    const handleSelectChange = (e: ChangeEvent<HTMLSelectElement>) => {
-        setAccountFormData((prevData) => ({
-            ...prevData,
-            [e.target.name]: e.target.value
-        }))
-    }
-
-    const handleTextareaChange = (e: ChangeEvent<HTMLTextAreaElement>) => {
-        setAccountFormData((prevData) => ({
-            ...prevData,
-            [e.target.name]: e.target.value
-        }))
-    }
-
+    /* Start of Add Account */
     const handleAddAccountClick = (e: MouseEvent<HTMLButtonElement>) => {
         e.preventDefault();
         const validated = Validator(accountFormData, {
@@ -106,7 +94,7 @@ const Account = () => {
                     });
                     setAccountFormData({
                         balance: "",
-                        currency_id: "",
+                        currency_id: allCurrencies ? allCurrencies[0].id.toString() : "",
                         name: "",
                         description: ""
                     });
@@ -123,7 +111,10 @@ const Account = () => {
             }, 2000);
         }
     }
+    /* End of Add Account */
 
+
+    /* Start of Delete Account */
     const handleDeleteAccountClick = (id: string | number) => {
         setSelectedDeleteID(id);
         setShowWarningModal(true);
@@ -149,16 +140,70 @@ const Account = () => {
         setSelectedDeleteID(null);
         setShowWarningModal(false);
     }
+    /* End of Delete Account */
 
+    /* Start of Edit Account */
     const handleEditClick = (id: string | number) => {
         AccountService.getAccount(id)
             .then((data) => {
-                console.log(data);
+                setSelectedEditID(data.id);
+                setAllAccounts((prevAccounts) => {
+                    return prevAccounts.map((account) =>
+                        account.id === data.id ? data : account
+                    );
+                });
+                setAccountFormData({
+                    balance: data.balance,
+                    currency_id: data.currency_id.toString(),
+                    name: data.name,
+                    description: data.description
+                });
             })
-            .catch(() => {
+            .catch((error) => {
+            });
+    };
 
-            })
+    const handleCancelEditClick = () => {
+        setSelectedEditID(null);
+        setAccountFormData({
+            balance: "",
+            currency_id: allCurrencies ? allCurrencies[0].id.toString() : "",
+            name: "",
+            description: ""
+        })
     }
+
+    const handleSaveEditClick = () => {
+        const validated = Validator(accountFormData, {
+            name: ['required'],
+            balance: ['required', 'number'],
+            currency_id: ['required'],
+            description: ['nullable'],
+
+        }, setAccountFormDataError)
+        if (validated && selectedEditID) {
+            AccountService.updateAccount(selectedEditID, accountFormData)
+                .then((data) => {
+                    setAccountFormData({
+                        balance: "",
+                        currency_id: allCurrencies ? allCurrencies[0].id.toString() : "",
+                        name: "",
+                        description: ""
+                    })
+                    setSelectedEditID(null);
+                    setAllAccounts((prevData) => {
+                        return prevData.map((account) => account.id == data.id ? data : account);
+                    });
+                })
+                .catch((error) => {
+                    setError(error.msg);
+                    resetErrorTimeoutRef.current = window.setTimeout(() => {
+                        setError(null);
+                    }, 2000);
+                })
+        }
+    }
+    /* End of Edit Account */
 
     return (
         <main className='min-h-[200svh]'>
@@ -203,7 +248,7 @@ const Account = () => {
                                     <>
                                         <select
                                             name='currency_id'
-                                            onChange={handleSelectChange}
+                                            onChange={handleInputChange}
                                             value={accountFormData.currency_id}
                                             className="bg-light-gray min-h-[45px] max-h-[45px] w-full rounded-md ps-4 appearance-none shadow-lg font-montserrat">
                                             {allCurrencies.map((currency) => (
@@ -235,7 +280,7 @@ const Account = () => {
                             </svg>
                             <textarea
                                 name='description'
-                                onChange={handleTextareaChange}
+                                onChange={handleInputChange}
                                 value={accountFormData.description}
                                 className='bg-light-gray min-h-[105px] max-h-[105px] w-full rounded-md placeholder:font-montserrat placeholder:text-white placeholder:text-opacity-50 ps-10 py-2 shadow-lg scrollBar resize-none'
                                 placeholder='Enter Description'
@@ -248,11 +293,30 @@ const Account = () => {
                             </div>
                         }
                     </div>
-                    <button
-                        onClick={handleAddAccountClick}
-                        className='text-black bg-login-button min-h-[45px] max-h-[45px] rounded-md shadow-lg mt-4 font-montserrat'>
-                        Add Account
-                    </button>
+                    {selectedEditID ? (
+                        <div className='flex gap-3 mt-4'>
+                            <button
+                                type='button'
+                                onClick={handleCancelEditClick}
+                                className='w-1/2 bg-danger rounded-md font-montserrat shadow-lg min-h-[45px] max-h-[45px]'
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                type='button'
+                                onClick={handleSaveEditClick}
+                                className='w-1/2 bg-primary rounded-md font-montserrat shadow-lg min-h-[45px] max-h-[45px]'
+                            >
+                                Save
+                            </button>
+                        </div>
+                    ) : (
+                        <button
+                            onClick={handleAddAccountClick}
+                            className='text-black bg-login-button min-h-[45px] max-h-[45px] rounded-md shadow-lg mt-4 font-montserrat'>
+                            Add Account
+                        </button>
+                    )}
                 </form>
                 <div className='flex-[0.7] flex flex-col'>
                     <p className='font-inter text-[32px] text-light-yellow mb-6'>Your Accounts</p>
@@ -269,7 +333,7 @@ const Account = () => {
                                     title="Balance"
                                     dataIndex="balance"
                                     sort
-                                    render={(data: AccountType) => {
+                                    render={(value: AccountType[keyof AccountType], data: AccountType) => {
                                         let modifiedBalance = formatDecimal(data.balance, data.currency.decimal_places);
                                         modifiedBalance = formatCurrencySymbol(modifiedBalance, data.currency.symbol, data.currency.symbol_position);
                                         return modifiedBalance;
@@ -284,16 +348,17 @@ const Account = () => {
                                 />
                                 <Column
                                     title="Action"
-                                    render={(data: AccountType) => {
+                                    dataIndex="id"
+                                    render={(value) => {
                                         return (
                                             <div className='flex gap-4'>
                                                 <a>
                                                     <FontAwesomeIcon icon={faEye} className='text-success text-[20px]' />
                                                 </a>
-                                                <button onClick={() => handleEditClick(data.id)}>
+                                                <button onClick={() => handleEditClick(value)}>
                                                     <FontAwesomeIcon icon={faEdit} className='text-primary text-[20px]' />
                                                 </button>
-                                                <button onClick={() => handleDeleteAccountClick(data.id)}>
+                                                <button onClick={() => handleDeleteAccountClick(value)}>
                                                     <FontAwesomeIcon icon={faTrash} className='text-danger text-[20px]' />
                                                 </button>
                                             </div>
@@ -305,7 +370,7 @@ const Account = () => {
                     }
                 </div>
             </div>
-        </main>
+        </main >
     )
 }
 
