@@ -195,7 +195,11 @@ const Account = () => {
                         return prevData.map((account) => account.id == data.id ? data : account);
                     });
                 })
-                .catch(() => {
+                .catch((error) => {
+                    setError(error.msg);
+                    resetErrorTimeoutRef.current = window.setTimeout(() => {
+                        setError(null);
+                    }, 2000);
                 })
         }
     }
