@@ -5,6 +5,7 @@ const { User } = require("../../models");
 const AccountResource = require("../../resources/AccountResource");
 
 const AccountService = require("../../services/AccountService");
+const isDuplicateName = require("../../utils/account/isDuplicateName");
 
 module.exports = {
   findAll: asyncHandler(async (req, res) => {
@@ -25,6 +26,8 @@ module.exports = {
   create: asyncHandler(async (req, res) => {
     const { name, balance, currency_id, description } = req.body;
     const { user } = req;
+
+    await isDuplicateName(name, user.id);
 
     const createdAccount = await AccountService.createAccount(user.id, {
       name,

@@ -1,21 +1,13 @@
-const { body } = require("express-validator");
+const { body, check } = require("express-validator");
 const { Account } = require("../../models");
+const checkValidDeno = require("../../utils/account/checkValidDeno");
 
 const validateAccountBody = [
   body("name")
     .notEmpty()
     .isString("Account name must be a string")
     .isLength({ min: 2 })
-    .withMessage("Account name must be at least 2 characters long")
-    .custom(async (value) => {
-      const account = await Account.findOne({ where: { name: value } });
-
-      if (account) {
-        throw new Error("Account name cannot be duplicate");
-      }
-
-      return true;
-    }),
+    .withMessage("Account name must be at least 2 characters long"),
 
   body("currency_id")
     .notEmpty()
@@ -24,9 +16,14 @@ const validateAccountBody = [
 
   body("balance")
     .notEmpty()
-    .isDecimal()
-    .withMessage("Balance must be decimal")
-    .custom(async (value, { req }) => {}),
+    .custom(async (value, { req }) => {
+      try {
+        await checkValidDeno(value, req.body.currency_id);
+        return true;
+      } catch (err) {
+        throw new Error(err.message);
+      }
+    }),
 ];
 
 module.exports = {
