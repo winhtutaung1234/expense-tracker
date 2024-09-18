@@ -1,6 +1,6 @@
-const { body, check } = require("express-validator");
-const { Account } = require("../../models");
+const { body } = require("express-validator");
 const checkValidDeno = require("../../utils/account/checkValidDeno");
+const { Currency } = require("../../models");
 
 const validateAccountBody = [
   body("name")
@@ -12,7 +12,16 @@ const validateAccountBody = [
   body("currency_id")
     .notEmpty()
     .isInt()
-    .withMessage("Currency id must be an integer"),
+    .withMessage("Currency id must be an integer")
+    .custom(async (value) => {
+      const curreny = await Currency.findByPk(value);
+
+      if (!curreny) {
+        throw new Error("Currency with that id not found");
+      }
+
+      return true;
+    }),
 
   body("balance")
     .notEmpty()

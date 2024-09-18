@@ -10,7 +10,7 @@ const updateAccountBalance = require("../../utils/updateAccountBalance");
 
 module.exports = {
   findAll: asyncHandler(async (req, res) => {
-    const { account_id } = req.body;
+    const { account_id } = req.query;
 
     const transcations = await Transcation.findAll({ where: { account_id } });
 

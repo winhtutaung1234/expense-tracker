@@ -2,6 +2,8 @@ require("dotenv").config();
 
 const express = require("express");
 const jwt = require("jsonwebtoken");
+const errRespones = require("../../utils/error/errResponse");
+const asyncHandler = require("express-async-handler");
 
 /**
  *
@@ -10,7 +12,7 @@ const jwt = require("jsonwebtoken");
  * @param {express.NextFunction} next
  */
 
-async function auth(req, res, next) {
+const auth = asyncHandler(async (req, res, next) => {
   const { authorization } = req.headers;
 
   if (!authorization) {
@@ -22,9 +24,7 @@ async function auth(req, res, next) {
   const [type, token] = authorization.split(" ");
 
   if (!token) {
-    return res.status(401).json({
-      msg: "Token required",
-    });
+    throw errRespones("Token invalid or expired", 401);
   }
 
   if (type !== "Bearer") {
@@ -43,6 +43,6 @@ async function auth(req, res, next) {
       msg: "Token invalid or expired",
     });
   }
-}
+});
 
 module.exports = auth;

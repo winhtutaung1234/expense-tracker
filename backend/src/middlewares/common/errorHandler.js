@@ -1,8 +1,18 @@
 function errorHandler(err, req, res, next) {
   console.error(err);
-  return res.status(err.status || 500).json({
-    msg: err.message || "An unknown error occured",
-  });
+
+  const response = {
+    errors: [],
+  };
+
+  if (err.message) {
+    response.errors.push({
+      msg: err.message,
+      path: err.path || null,
+    });
+  }
+
+  return res.status(err.status || 500).json(response);
 }
 
 module.exports = {
