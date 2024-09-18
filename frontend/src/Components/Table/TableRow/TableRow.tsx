@@ -24,7 +24,7 @@ const TableRow = <T,>({ data, column }: TableRowProps<T>) => {
 
         return (
             <td className={`font-montserrat py-4 px-3 pt-3 ${className}`}>
-                {column.render(data)}
+                {column.render(data[column.dataIndex as keyof T] as T[keyof T], data)}
             </td>
         )
     }

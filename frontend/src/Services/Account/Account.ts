@@ -37,6 +37,15 @@ class Account {
             throw error;
         }
     }
+
+    static async updateAccount(id: string | number, accountFormData: AccountForm): Promise<AccountType> {
+        try {
+            const response = await api.put<AccountType>(`/accounts/${id}`, accountFormData);
+            return response.data;
+        } catch (error) {
+            throw error;
+        }
+    }
 }
 
 export default Account;
