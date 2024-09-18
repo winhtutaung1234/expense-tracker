@@ -36,7 +36,7 @@ server.use("/api/accounts", accountsRouter);
 
 server.use("/api/currencies", currenciesRouter);
 
-server.use("/api/transcations", transcationsRouter);
+server.use("/api/transactions", transcationsRouter);
 
 server.use(errorHandler);
 

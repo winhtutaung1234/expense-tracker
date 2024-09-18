@@ -1,5 +1,5 @@
 function errorHandler(err, req, res, next) {
-  console.error(err);
+  console.error("errorHandler: ", err);
 
   const response = {
     errors: [],
