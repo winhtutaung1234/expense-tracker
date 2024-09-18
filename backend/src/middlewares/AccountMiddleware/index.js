@@ -2,7 +2,7 @@ const { authorization } = require("../AuthMiddleware/authorized");
 const validateId = require("../common/validateId");
 const validator = require("../common/validator");
 const accountLimits = require("./accountLimits");
-const { validateAccountBody } = require("./accountValidation");
+const { validateAccountBody } = require("./validation");
 
 const readMiddleware = [authorization(["read_account"])];
 

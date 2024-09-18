@@ -4,10 +4,6 @@ const { Currency } = require("../../models");
 const { User } = require("../../models");
 const AccountResource = require("../../resources/AccountResource");
 
-const {
-  checkDecimalBalance,
-  checkNonDecimalBalance,
-} = require("../../utils/denomination/isValidBalance");
 const AccountService = require("../../services/AccountService");
 
 module.exports = {
@@ -30,11 +26,16 @@ module.exports = {
     const { name, balance, currency_id, description } = req.body;
     const { user } = req;
 
-    const account = await AccountService.createAccount(user.id, {
+    const createdAccount = await AccountService.createAccount(user.id, {
       name,
       balance,
       currency_id,
       description,
+    });
+
+    const account = await Account.findOne({
+      where: { id: createdAccount.id },
+      include: Currency,
     });
 
     return res.status(201).json(new AccountResource(account).exec());
@@ -46,13 +47,20 @@ module.exports = {
     const { user } = req;
 
     try {
-      await AccountService.updateAccount(id, {
+      const updatedAccount = await AccountService.updateAccount(id, {
         user_id: user.id,
         name,
         balance,
         currency_id,
         description,
       });
+
+      const account = await Account.findOne({
+        where: { id: updatedAccount.id },
+        include: Currency,
+      });
+
+      return res.json(new AccountResource(account).exec());
     } catch (err) {
       return res
         .status(400)

@@ -74,9 +74,9 @@ class AccountService {
       );
     }
 
-    const account = await Account.create({ user_id: userId, ...data });
+    const createdAccount = await Account.create({ user_id: userId, ...data });
 
-    return account;
+    return createdAccount;
   }
 
   async updateAccount(accountId, updatedData) {
@@ -86,8 +86,9 @@ class AccountService {
       throw errRespones("Account not found", 404);
     }
 
-    await account.update(updatedData);
-    return true;
+    const updatedAccount = await account.update(updatedData);
+
+    return updatedAccount;
   }
 
   async deleteAccount(accountId) {
