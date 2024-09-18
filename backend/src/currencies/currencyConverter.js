@@ -25,8 +25,6 @@ async function currencyConverter(account_id, currency_id, amount) {
       const res = await fetch(api);
       const data = await res.json();
 
-      console.log("data: ", data);
-
       exchange_rate = data.conversion_rate.toFixed(4);
       convertedAmount = data.conversion_result.toFixed(currency.decimal_places);
 
