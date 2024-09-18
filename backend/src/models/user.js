@@ -1,7 +1,7 @@
 "use strict";
 const { Model, Op } = require("sequelize");
 const bcrypt = require("bcrypt");
-const errRespones = require("../utils/error/errResponse");
+const errRespones = require("../utils/error/errResponses");
 
 module.exports = (sequelize, DataTypes) => {
   class User extends Model {

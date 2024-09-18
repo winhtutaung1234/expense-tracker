@@ -1,7 +1,7 @@
 const { Account } = require("../models");
 const { Currency } = require("../models");
 const isDuplicateName = require("../utils/account/isDuplicateName");
-const errRespones = require("../utils/error/errResponse");
+const errRespones = require("../utils/error/errResponses");
 
 class AccountService {
   async getAllAccounts(userId) {

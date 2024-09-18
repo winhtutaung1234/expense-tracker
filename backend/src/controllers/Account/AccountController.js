@@ -2,7 +2,7 @@ const asyncHandler = require("express-async-handler");
 const AccountResource = require("../../resources/AccountResource");
 
 const AccountService = require("../../services/AccountService");
-const errRespones = require("../../utils/error/errResponse");
+const errRespones = require("../../utils/error/errResponses");
 
 module.exports = {
   findAll: asyncHandler(async (req, res) => {
@@ -62,6 +62,10 @@ module.exports = {
     const { Account } = require("../../models");
 
     const account = await Account.findOne({ where: { id } });
+
+    if (!account) {
+      return res.status(404).json({ msg: "Not found" });
+    }
     console.log(account);
     return res.json("fuck");
   }),

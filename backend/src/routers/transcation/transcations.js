@@ -10,7 +10,7 @@ const {
 const router = express.Router();
 
 router
-  .get("/?account_id", readTranscationMiddleware, TranscationController.findAll)
+  .get("/", readTranscationMiddleware, TranscationController.findAll)
   .post("/", createTranscationMiddleware, TranscationController.create)
   .put("/:id", updateTranscationMiddleware, TranscationController.update)
   .delete("/:id", deleteTranscationMiddleware, TranscationController.destroy);

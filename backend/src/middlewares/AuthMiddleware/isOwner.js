@@ -1,5 +1,6 @@
 const { User } = require("../../models");
 const { Account } = require("../../models");
+const errRespones = require("../../utils/error/errResponses");
 
 function isOwner(type) {
   return async (req, res, next) => {
@@ -18,7 +19,7 @@ function isOwner(type) {
       const account = await Account.findByPk(id);
 
       if (!account) {
-        return res.status(404).json({ msg: "Account not found" });
+        throw errRespones("Account not found", 404);
       }
 
       if (account.user_id === user.id) {

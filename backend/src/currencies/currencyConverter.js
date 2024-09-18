@@ -2,7 +2,7 @@ require("dotenv").config();
 
 const { Currency } = require("../models");
 const { Account } = require("../models");
-const errRespones = require("../utils/error/errResponse");
+const errRespones = require("../utils/error/errResponses");
 
 async function currencyConverter(account_id, currency_id, amount) {
   const account = await Account.findByPk(account_id, { include: Currency });

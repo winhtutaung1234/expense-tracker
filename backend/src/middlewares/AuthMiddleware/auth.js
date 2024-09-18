@@ -2,7 +2,7 @@ require("dotenv").config();
 
 const express = require("express");
 const jwt = require("jsonwebtoken");
-const errRespones = require("../../utils/error/errResponse");
+const errRespones = require("../../utils/error/errResponses");
 const asyncHandler = require("express-async-handler");
 
 /**

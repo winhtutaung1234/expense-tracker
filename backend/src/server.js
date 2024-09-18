@@ -38,7 +38,7 @@ server.use("/api/currencies", currenciesRouter);
 
 server.use("/api/transcations", transcationsRouter);
 
-// server.use(errorHandler);
+server.use(errorHandler);
 
 server.listen(portName, () => {
   console.log(`server running on port ${portName}`);

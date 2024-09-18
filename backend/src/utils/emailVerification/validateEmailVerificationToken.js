@@ -1,5 +1,5 @@
 const { EmailVerificationToken } = require("../../models");
-const errRespones = require("../error/errResponse");
+const errRespones = require("../error/errResponses");
 const bcrpt = require("bcrypt");
 
 async function validateEmailVerificationToken(user_id, token) {
