@@ -1,6 +1,6 @@
 const { Op } = require("sequelize");
 const { Account } = require("../../models");
-const errRespones = require("../error/errResponses");
+const errRespones = require("../error/errResponse");
 
 async function isDuplicateName(type, data) {
   let accounts;

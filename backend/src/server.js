@@ -3,13 +3,7 @@ const express = require("express");
 const cors = require("cors");
 const { errorHandler } = require("./middlewares/common/errorHandler");
 const cookieParser = require("cookie-parser");
-const auth = require("./middlewares/AuthMiddleware/auth");
-
-const { usersRouter } = require("./routers/user/users");
-const { accountsRouter } = require("./routers/account/accounts");
-const { currenciesRouter } = require("./routers/admin/currencies");
-const { categoriesRouter } = require("./routers/category/categories");
-const { transcationsRouter } = require("./routers/transcation/transcations");
+const { apiV1Routers } = require("./routers/v1");
 
 const server = express();
 
@@ -25,18 +19,7 @@ server.use(
   })
 );
 
-server.use("/api", usersRouter);
-
-server.use("/api/categories", categoriesRouter);
-
-// protected routers
-server.use(auth);
-
-server.use("/api/accounts", accountsRouter);
-
-server.use("/api/currencies", currenciesRouter);
-
-server.use("/api/transactions", transcationsRouter);
+server.use("/api/v1", apiV1Routers);
 
 server.use(errorHandler);
 

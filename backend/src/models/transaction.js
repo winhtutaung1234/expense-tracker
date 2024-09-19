@@ -1,7 +1,7 @@
 "use strict";
 const { Model } = require("sequelize");
 module.exports = (sequelize, DataTypes) => {
-  class Account extends Model {
+  class Transaction extends Model {
     /**
      * Helper method for defining associations.
      * This method is not a part of Sequelize lifecycle.
@@ -9,37 +9,39 @@ module.exports = (sequelize, DataTypes) => {
      */
     static associate(models) {
       // define association here
-      Account.belongsTo(models.Currency, {
-        foreignKey: "currency_id",
-        onDelete: "CASCADE",
-      });
-
-      Account.belongsTo(models.User, {
-        foreignKey: "user_id",
-        onDelete: "CASCADE",
-      });
-
-      Account.hasMany(models.Transaction, {
+      Transaction.belongsTo(models.Account, {
         foreignKey: "account_id",
+        onDelete: "CASCADE",
+      });
+
+      Transaction.belongsTo(models.Category, {
+        foreignKey: "category_id",
+        onDelete: "CASCADE",
+      });
+
+      Transaction.belongsTo(models.Currency, {
+        foreignKey: "currency_id",
         onDelete: "CASCADE",
       });
     }
   }
-  Account.init(
+  Transaction.init(
     {
-      user_id: DataTypes.BIGINT.UNSIGNED,
-      name: DataTypes.STRING,
-      balance: DataTypes.DECIMAL,
+      account_id: DataTypes.BIGINT.UNSIGNED,
+      category_id: DataTypes.BIGINT.UNSIGNED,
+      transaction_type: DataTypes.ENUM("income", "expense", "transfer"),
+      amount: DataTypes.DECIMAL,
       currency_id: DataTypes.BIGINT.UNSIGNED,
       description: DataTypes.TEXT,
+      exchange_rate: DataTypes.DECIMAL,
     },
     {
       sequelize,
-      modelName: "Account",
+      modelName: "Transaction",
       underscored: true,
       createdAt: "created_at",
       updatedAt: "updated_at",
     }
   );
-  return Account;
+  return Transaction;
 };

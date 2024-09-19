@@ -1,4 +1,5 @@
 const { Account, Limit } = require("../../models");
+const errResponse = require("../../utils/error/errResponse");
 
 const accountLimits = async (req, res, next) => {
   try {
@@ -17,12 +18,12 @@ const accountLimits = async (req, res, next) => {
     const accountCount = await Account.count({ where: { user_id: user.id } });
 
     if (accountCount >= roleLimit.max_accounts) {
-      return res.status(403).json({ msg: "Account creation limit reached" });
+      throw errResponse("Account creation limit reached", 403);
     }
 
     return next();
   } catch (err) {
-    return res.status(500).json({ msg: err.message });
+    next(err);
   }
 };
 

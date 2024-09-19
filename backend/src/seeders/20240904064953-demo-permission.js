@@ -54,24 +54,24 @@ module.exports = {
         updated_at: new Date(),
       },
 
-      // Transcation permissions -> for authenticated user
+      // Transaction permissions -> for authenticated user
       {
-        name: "read_transcation",
+        name: "read_transaction",
         created_at: new Date(),
         updated_at: new Date(),
       },
       {
-        name: "create_transcation",
+        name: "create_transaction",
         created_at: new Date(),
         updated_at: new Date(),
       },
       {
-        name: "edit_transcation",
+        name: "edit_transaction",
         created_at: new Date(),
         updated_at: new Date(),
       },
       {
-        name: "delete_transcation",
+        name: "delete_transaction",
         created_at: new Date(),
         updated_at: new Date(),
       },

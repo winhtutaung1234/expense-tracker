@@ -1,5 +1,5 @@
 const { authorization } = require("../AuthMiddleware/authorized");
-const { validateCreateCurrency } = require("./currencyValidation");
+const { validateCreateCurrency } = require("./validation");
 
 const validator = require("../../middlewares/common/validator");
 const validateId = require("../common/validateId");
