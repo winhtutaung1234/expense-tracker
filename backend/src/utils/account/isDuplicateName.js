@@ -18,7 +18,7 @@ async function isDuplicateName(type, data) {
   const isDuplicate = accounts.some((account) => account.name === data.name);
 
   if (isDuplicate) {
-    throw errRespones("Account name cannot be duplicate", 400);
+    throw errRespones("Account name cannot be duplicate", 400, "name");
   }
 }
 

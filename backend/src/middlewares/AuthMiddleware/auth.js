@@ -22,7 +22,7 @@ const auth = asyncHandler(async (req, res, next) => {
   const [type, token] = authorization.split(" ");
 
   if (!token) {
-    throw errRespones("Token invalid or expired", 401);
+    throw errRespones("Token required", 401);
   }
 
   if (type !== "Bearer") {
@@ -35,7 +35,7 @@ const auth = asyncHandler(async (req, res, next) => {
     req.user = user;
     next();
   } catch (err) {
-    next(err);
+    throw errRespones("Jwt expired", 401);
   }
 });
 
