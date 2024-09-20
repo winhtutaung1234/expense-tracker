@@ -26,6 +26,16 @@ class TransactionResource extends Resource {
             name: this.Category.name,
           }
         : null,
+      account: this.Account
+        ? {
+            id: this.Account.id,
+            user_id: this.Account.user_id,
+            name: this.Account.name,
+            balance: this.Account.balance,
+            currency_id: this.Account.currency_id,
+            description: this.Account.description,
+          }
+        : null,
     };
   }
 }

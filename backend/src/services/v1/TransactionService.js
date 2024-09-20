@@ -67,6 +67,9 @@ class TransactionService {
           model: Category,
           attributes: ["name"],
         },
+        {
+          model: Account,
+        },
       ],
     });
 
@@ -102,7 +105,7 @@ class TransactionService {
     });
 
     // Create the transaction with the converted amount and exchange rate
-    const updatedTransaction = await transaction.update({
+    await transaction.update({
       account_id,
       category_id,
       transaction_type,
@@ -110,6 +113,22 @@ class TransactionService {
       currency_id,
       description,
       exchange_rate: exchange_rate,
+    });
+
+    const updatedTransaction = await Transaction.findByPk(transaction.id, {
+      include: [
+        {
+          model: Currency,
+          attributes: ["code", "symbol", "symbol_position", "decimal_places"],
+        },
+        {
+          model: Category,
+          attributes: ["name"],
+        },
+        {
+          model: Account,
+        },
+      ],
     });
 
     return updatedTransaction;
