@@ -69,6 +69,7 @@ class TransactionService {
         },
         {
           model: Account,
+          attributes: ["id", "balance"],
         },
       ],
     });
@@ -127,6 +128,7 @@ class TransactionService {
         },
         {
           model: Account,
+          attributes: ["id", "balance"],
         },
       ],
     });
