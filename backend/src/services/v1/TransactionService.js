@@ -1,10 +1,14 @@
 const { Transaction } = require("../../models");
 const { Currency } = require("../../models");
 const { Category } = require("../../models");
+const { Account } = require("../../models");
 
 const errResponse = require("../../utils/error/errResponse");
-const updateAccountBalance = require("../../utils/account/updateAccountBalance");
 const currencyConverter = require("../../utils/currency/currencyConverter");
+const {
+  addTransactionToAccountBalance,
+  updateTransactionToAccountBalance,
+} = require("../../utils/account/updateAccountBalance");
 
 class TransactionService {
   async getAllTransactions(account_id) {
@@ -36,10 +40,14 @@ class TransactionService {
       amount
     );
 
-    await updateAccountBalance(account_id, convertedAmount, transaction_type);
+    await addTransactionToAccountBalance({
+      account_id,
+      convertedAmount,
+      transaction_type,
+    });
 
     // Create the transaction with the converted amount and exchange rate
-    const transaction = await Transaction.create({
+    const createdTransaction = await Transaction.create({
       account_id,
       category_id,
       transaction_type,
@@ -49,6 +57,19 @@ class TransactionService {
       exchange_rate: exchange_rate,
     });
 
+    const transaction = await Transaction.findByPk(createdTransaction.id, {
+      include: [
+        {
+          model: Currency,
+          attributes: ["code", "symbol", "symbol_position", "decimal_places"],
+        },
+        {
+          model: Category,
+          attributes: ["name"],
+        },
+      ],
+    });
+
     return transaction;
   }
 
@@ -56,13 +77,13 @@ class TransactionService {
     const { category_id, transaction_type, amount, currency_id, description } =
       data;
 
-    const transaction = await Transaction.findbyPk(id);
+    const transaction = await Transaction.findByPk(id);
 
     if (!transaction) {
       throw errResponse("Transaction not found", 404);
     }
 
-    if (transaction.account_id !== account_id) {
+    if (transaction.account_id !== Number(account_id)) {
       throw errResponse("Account doesn't match to update the transaction", 400);
     }
 
@@ -73,7 +94,12 @@ class TransactionService {
       amount
     );
 
-    await updateAccountBalance(account_id, convertedAmount, transaction_type);
+    await updateTransactionToAccountBalance({
+      account_id,
+      convertedAmount,
+      transaction_type,
+      transaction_id: transaction.id,
+    });
 
     // Create the transaction with the converted amount and exchange rate
     const updatedTransaction = await transaction.update({

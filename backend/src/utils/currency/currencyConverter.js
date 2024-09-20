@@ -2,6 +2,7 @@ require("dotenv").config();
 
 const { Currency } = require("../../models");
 const { Account } = require("../../models");
+const { Denomination } = require("../../models");
 const errResponse = require("../error/errResponse");
 
 async function currencyConverter(account_id, currency_id, amount) {
@@ -26,7 +27,30 @@ async function currencyConverter(account_id, currency_id, amount) {
       const data = await res.json();
 
       exchange_rate = data.conversion_rate.toFixed(4);
-      convertedAmount = data.conversion_result.toFixed(currency.decimal_places);
+
+      convertedAmount = data.conversion_result.toFixed(
+        account.Currency.decimal_places
+      );
+
+      if (!account.Currency.decimal_places) {
+        const denominations = await Denomination.findAll({
+          where: { currency_id: account.Currency.id },
+          order: [["value", "DESC"]],
+        });
+
+        if (!denominations) {
+          throw errResponse("Denominations not found", 404);
+        }
+
+        let invalidCurrencyAmount = convertedAmount;
+
+        denominations.forEach(
+          (deno) =>
+            (invalidCurrencyAmount = invalidCurrencyAmount % Number(deno.value))
+        );
+
+        convertedAmount -= invalidCurrencyAmount;
+      }
 
       return { exchange_rate, convertedAmount };
     } catch (err) {

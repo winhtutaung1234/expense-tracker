@@ -3,6 +3,7 @@ require("dotenv").config();
 const asyncHandler = require("express-async-handler");
 const TransactionService = require("../../../services/v1/TransactionService");
 const TransactionResource = require("../../../resources/TransactionResource");
+const errResponse = require("../../../utils/error/errResponse");
 
 module.exports = {
   findAll: asyncHandler(async (req, res) => {
@@ -16,7 +17,7 @@ module.exports = {
   }),
 
   create: asyncHandler(async (req, res) => {
-    const { account_id } = req.query;
+    const { account_id } = req.body;
 
     const transaction = await TransactionService.createTransaction(
       account_id,
@@ -28,7 +29,7 @@ module.exports = {
 
   update: asyncHandler(async (req, res) => {
     const { id } = req.params;
-    const { account_id } = req.query;
+    const { account_id } = req.body;
 
     const transaction = await TransactionService.updateTransaction(
       id,
@@ -41,7 +42,7 @@ module.exports = {
 
   destroy: asyncHandler(async (req, res) => {
     const { id } = req.params;
-    const { account_id } = req.query;
+    const { account_id } = req.body;
 
     await TransactionService.deleteTransaction(id, account_id);
     return res.sendStatus(204);

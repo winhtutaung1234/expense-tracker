@@ -20,7 +20,7 @@ const createTransactionMiddleware = [
 ];
 
 const updateTransactionMiddleware = [
-  authorization(["update_transaction"]),
+  authorization(["edit_transaction"]),
   validateId,
   transactionQueryValidation,
   transactionValidation,
