@@ -2,6 +2,7 @@
 const { Denomination } = require("../../models");
 
 const { body, query } = require("express-validator");
+const checkValidDeno = require("../../utils/account/checkValidDeno");
 
 const transactionQueryValidation = [
   query("account_id")
@@ -12,6 +13,12 @@ const transactionQueryValidation = [
 ];
 
 const transactionValidation = [
+  body("account_id")
+    .notEmpty()
+    .withMessage("Account Id cannot be empty")
+    .isInt({ min: 1 })
+    .withMessage("Account Id must be a positive integer"),
+
   body("category_id")
     .isInt({ min: 1 })
     .withMessage("Category ID must be a positive integer"),
@@ -26,33 +33,20 @@ const transactionValidation = [
     .isInt({ min: 1 })
     .withMessage("Currency ID must be a positive integer"),
 
-  body("amount").custom(async (value, { req }) => {
-    const denominations = await Denomination.findAll({
-      where: { currency_id: req.body.currency_id },
-    });
+  body("amount")
+    .notEmpty()
+    .withMessage("Amount cannot be empty")
+    .custom(async (value, { req }) => {
+      const result = await checkValidDeno(value, req.body.currency_id);
 
-    if (denominations.length === 0) {
-      throw new Error("No denominations found for the given currency");
-    }
+      if (!result) {
+        throw new Error("Invalid amount for given currency");
+      } else {
+        return true;
+      }
+    }),
 
-    const isValid = denominations.some((deno) => {
-      return value % deno.value === 0;
-    });
-
-    if (!isValid) {
-      throw new Error("Invalid amount for the given currency denominations");
-    }
-
-    return true;
-  }),
-
-  body("description")
-    .optional()
-    .isString()
-    .isLength({ max: 500 })
-    .withMessage(
-      "Description should be a text field with a maximum length of 500 characters"
-    ),
+  body("description").optional().isString(),
 
   body("exchange_rate")
     .optional()

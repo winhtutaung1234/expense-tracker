@@ -8,90 +8,27 @@ async function addTransactionToAccountBalance({
   transaction_type,
 }) {
   const account = await Account.findByPk(account_id);
-
   if (!account) {
     throw errRespones("Account not found", 404);
   }
 
-  if (transaction_type === "expense" && convertedAmount > account.balance) {
-    throw errRespones("Insufficent fund", 400);
-  }
+  const accountBalance = await getFormattedBalance(account.balance);
+  const amount = await getFormattedBalance(convertedAmount);
 
   let newBalance;
 
-  if (transaction_type === "income") {
-    newBalance =
-      (await getFormattedBalance(account.balance)) +
-      (await getFormattedBalance(convertedAmount));
-  } else if (transaction_type === "expense") {
-    newBalance = (await getFormattedBalance(account.balance)) - convertedAmount;
+  if (transaction_type === "expense" && accountBalance > amount) {
+    newBalance = accountBalance - amount;
+  } else if (transaction_type === "income") {
+    newBalance = accountBalance + amount;
+  } else {
+    throw errRespones("Insufficient fund", 400);
   }
-
-  console.log("new balance: ", newBalance, " type: ", typeof newBalance);
 
   await account.update({ balance: newBalance });
 
   return true;
 }
-
-// async function updateTransactionToAccountBalance({
-//   account_id,
-//   convertedAmount,
-//   transaction_type,
-//   transaction_id,
-// }) {
-//   const account = await Account.findByPk(account_id);
-//   if (!account) {
-//     throw errRespones("Account not found", 404);
-//   }
-
-//   const transaction = await Transaction.findByPk(transaction_id);
-//   if (!transaction) {
-//     throw errRespones("Transaction not found", 404);
-//   }
-
-//   let newBalance = await getFormattedBalance(account.balance);
-
-//   if (transaction_type !== transaction.transaction_type) {
-//     console.log("running...");
-//     let originalBalance = await getFormattedBalance(account.balance);
-//     console.log(
-//       "currenct balance: ",
-//       originalBalance,
-//       " type: ",
-//       typeof originalBalance
-//     );
-
-//     if (transaction.transaction_type === "income") {
-//       originalBalance -= await getFormattedBalance(transaction.amount);
-//     } else {
-//       originalBalance += await getFormattedBalance(transaction.amount);
-//     }
-//     console.log(
-//       "originalBalance: ",
-//       originalBalance,
-//       "type: ",
-//       typeof originalBalance
-//     );
-
-//     if (transaction_type === "income") {
-//       newBalance = originalBalance + Number(convertedAmount);
-//     } else {
-//       newBalance = originalBalance - Number(convertedAmount);
-//     }
-//     console.log("newBalance: ", newBalance, " type: ", typeof newBalance);
-//   }
-
-//   console.log(
-//     "new Balane for update: ",
-//     newBalance,
-//     " type: ",
-//     typeof newBalance
-//   );
-//   await account.update({ balance: newBalance });
-
-//   return true;
-// }
 
 async function updateTransactionToAccountBalance({
   account_id,
@@ -110,29 +47,25 @@ async function updateTransactionToAccountBalance({
   }
 
   // Parse the current balance as a number
-  let newBalance = await getFormattedBalance(account.balance);
-
-  // If the transaction type has changed, adjust the balance accordingly
-  const originalAmount = await getFormattedBalance(transaction.amount);
+  const amount = await getFormattedBalance(convertedAmount);
   const isIncome = transaction.transaction_type === "income";
+  const transactionAmount = await getFormattedBalance(transaction.amount);
 
-  // Adjust the balance based on the original transaction type
-  newBalance += isIncome ? -originalAmount : originalAmount;
+  let accountBalance = await getFormattedBalance(account.balance);
+  let newBalance;
 
-  // Update the balance based on the new transaction type
-  newBalance +=
-    transaction_type === "income"
-      ? await getFormattedBalance(convertedAmount)
-      : -convertedAmount;
+  if (isIncome) {
+    accountBalance -= transactionAmount;
+  } else {
+    accountBalance += transactionAmount;
+  }
 
-  console.log(
-    "New balance from update: ",
-    newBalance,
-    "type: ",
-    typeof newBalance
-  );
+  if (transaction_type === "income") {
+    newBalance = accountBalance + amount;
+  } else {
+    newBalance = accountBalance - amount;
+  }
 
-  // Update the account balance in the database
   await account.update({ balance: await getFormattedBalance(newBalance) });
 
   return true;

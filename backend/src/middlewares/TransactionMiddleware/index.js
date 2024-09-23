@@ -14,7 +14,6 @@ const readTransactionMiddleware = [
 
 const createTransactionMiddleware = [
   authorization(["create_transaction"]),
-  transactionQueryValidation,
   transactionValidation,
   validator,
 ];
@@ -22,14 +21,12 @@ const createTransactionMiddleware = [
 const updateTransactionMiddleware = [
   authorization(["edit_transaction"]),
   validateId,
-  transactionQueryValidation,
   transactionValidation,
   validator,
 ];
 
 const deleteTransactionMiddleware = [
   authorization(["delete_transaction"]),
-  transactionQueryValidation,
   validateId,
   validator,
 ];

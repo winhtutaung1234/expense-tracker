@@ -6,28 +6,35 @@ const { Denomination } = require("../../models");
 const errResponse = require("../error/errResponse");
 
 async function currencyConverter(account_id, currency_id, amount) {
-  const account = await Account.findByPk(account_id, { include: Currency });
-  const currency = await Currency.findByPk(currency_id);
+  const account = await Account.findByPk(
+    account_id,
+    { include: Currency },
+    { attributes: ["code", "decimal_places"] }
+  );
 
-  if (!account || !currency) {
-    throw errResponse("Account or Currency not found", 404);
+  if (!account) {
+    throw errResponse("Account not found", 404);
   }
 
-  let exchange_rate = 1;
+  const currency = await Currency.findByPk(currency_id);
+  if (!currency) {
+    throw errResponse("Currency not found", 404);
+  }
+
   let convertedAmount = amount;
+  let exchange_rate = 1;
 
-  if (account.currency_id !== currency.id) {
-    const accountCurrency = account.Currency;
-    const transcationCurrency = currency;
-
-    const api = `https://v6.exchangerate-api.com/v6/${process.env.EXCHANGE_RATE_API_KEY}/pair/${transcationCurrency.code}/${accountCurrency.code}/${amount}`;
+  if (Number(account.currency_id) !== Number(currency_id)) {
+    const accountCurrency = account.Currency.code;
+    const transactionCurrency = currency.code;
 
     try {
+      const api = `https://v6.exchangerate-api.com/v6/${process.env.EXCHANGE_RATE_API_KEY}/pair/${transactionCurrency}/${accountCurrency}/${amount}`;
+
       const res = await fetch(api);
       const data = await res.json();
 
       exchange_rate = data.conversion_rate.toFixed(4);
-
       convertedAmount = data.conversion_result.toFixed(
         account.Currency.decimal_places
       );
@@ -51,14 +58,14 @@ async function currencyConverter(account_id, currency_id, amount) {
 
         convertedAmount -= invalidCurrencyAmount;
       }
-
-      return { exchange_rate, convertedAmount };
     } catch (err) {
       throw errResponse(err.message, 400);
     }
-  } else {
-    return { exchange_rate, convertedAmount };
   }
+
+  console.log("converted Amount: ", convertedAmount);
+
+  return { exchange_rate, convertedAmount };
 }
 
 module.exports = currencyConverter;

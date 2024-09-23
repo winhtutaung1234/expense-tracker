@@ -1,12 +1,11 @@
 const { Denomination } = require("../../models");
+const errResponse = require("../error/errResponse");
 
-async function checkValidDeno(value, currencyId) {
-  const denominations = await Denomination.findAll({
-    where: { currency_id: currencyId },
-  });
+async function checkValidDeno(value, currency_id) {
+  const denominations = await Denomination.findAll({ where: { currency_id } });
 
-  if (denominations.length === 0) {
-    throw new Error("No denominations found for the given currency");
+  if (!denominations) {
+    throw errResponse("Denominations not found", 404);
   }
 
   const isValid = denominations.some((deno) => {
@@ -16,7 +15,7 @@ async function checkValidDeno(value, currencyId) {
   if (isValid) {
     return true;
   } else {
-    throw new Error("Invalid amount for the given currency");
+    return false;
   }
 }
 

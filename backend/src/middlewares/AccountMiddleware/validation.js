@@ -1,6 +1,7 @@
 const { body } = require("express-validator");
 const checkValidDeno = require("../../utils/account/checkValidDeno");
 const { Currency } = require("../../models");
+const { Denomination } = require("../../models");
 
 const validateAccountBody = [
   body("name")
@@ -26,11 +27,12 @@ const validateAccountBody = [
   body("balance")
     .notEmpty()
     .custom(async (value, { req }) => {
-      try {
-        await checkValidDeno(value, req.body.currency_id);
+      const result = await checkValidDeno(value, req.body.currency_id);
+
+      if (!result) {
+        throw new Error("Invalid balance for given currency");
+      } else {
         return true;
-      } catch (err) {
-        throw new Error(err.message);
       }
     }),
 ];
