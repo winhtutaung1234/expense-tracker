@@ -1,4 +1,5 @@
 const { Role, Permission } = require("../../models");
+const errResponse = require("../../utils/error/errResponse");
 
 const authorization = (permission) => {
   return async (req, res, next) => {
@@ -7,7 +8,7 @@ const authorization = (permission) => {
 
       const role = await Role.findByPk(user.role_id, { include: Permission });
       if (!role) {
-        return res.status(404).json({ msg: "Role not found" });
+        throw errResponse("Role not found", 404, "role");
       }
 
       const userPermissions = role.Permissions.map((p) => p.name);
@@ -19,12 +20,14 @@ const authorization = (permission) => {
       if (hasPermission) {
         return next();
       } else {
-        return res
-          .status(403)
-          .json({ msg: "You don't have the permission for this" });
+        throw errResponse(
+          "You don't have permission for this",
+          403,
+          "permission"
+        );
       }
     } catch (err) {
-      return res.status(500).json({ msg: err.message });
+      throw errResponse(err.message);
     }
   };
 };

@@ -6,7 +6,11 @@ const { Denomination } = require("../../models");
 const validateAccountBody = [
   body("name")
     .notEmpty()
+    .withMessage("Account name cannot be empty")
+    .bail()
     .isString("Account name must be a string")
+    .withMessage("Account name must be a string")
+    .bail()
     .isLength({ min: 2 })
     .withMessage("Account name must be at least 2 characters long"),
 

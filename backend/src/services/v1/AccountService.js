@@ -1,7 +1,7 @@
 const { Account } = require("../../models");
 const { Currency } = require("../../models");
 const isDuplicateName = require("../../utils/account/isDuplicateName");
-const errRespones = require("../../utils/error/errResponse");
+const errResponse = require("../../utils/error/errResponse");
 
 class AccountService {
   async getAllAccounts(userId) {
@@ -11,7 +11,7 @@ class AccountService {
     });
 
     if (accounts.length === 0) {
-      throw errRespones("This user has no accounts", 404);
+      throw errResponse("This user has no accounts", 404);
     }
 
     return accounts;
@@ -21,7 +21,7 @@ class AccountService {
     const account = await Account.findByPk(accountId, { include: Currency });
 
     if (!account) {
-      throw errRespones("Account not found", 404);
+      throw errResponse("Account not found", 404);
     }
 
     return account;
@@ -39,18 +39,21 @@ class AccountService {
   }
 
   async updateAccount(accountId, updatedData) {
+    const account = await Account.findByPk(accountId, { include: Currency });
+
+    if (!account) {
+      throw errResponse("Account not found", 404, "account");
+    }
+
     await isDuplicateName("update", {
       user_id: updatedData.user_id,
       name: updatedData.name,
       accountId,
     });
 
-    const result = await account.update(updatedData);
+    await account.update({ ...updatedData });
 
-    const updatedAccount = await Account.findByPk(result.id, {
-      include: Currency,
-    });
-    return updatedAccount;
+    return account;
   }
 
   async deleteAccount(accountId) {

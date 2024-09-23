@@ -1,0 +1,3 @@
+class UserService {
+  async login() {}
+}

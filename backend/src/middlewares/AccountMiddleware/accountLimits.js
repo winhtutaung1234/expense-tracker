@@ -18,7 +18,7 @@ const accountLimits = async (req, res, next) => {
     const accountCount = await Account.count({ where: { user_id: user.id } });
 
     if (accountCount >= roleLimit.max_accounts) {
-      throw errResponse("Account creation limit reached", 403);
+      throw errResponse("Account creation limit reached", 403, "account");
     }
 
     return next();

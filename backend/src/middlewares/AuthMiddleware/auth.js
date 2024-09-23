@@ -35,7 +35,7 @@ const auth = asyncHandler(async (req, res, next) => {
     req.user = user;
     next();
   } catch (err) {
-    throw errRespones("Jwt expired", 401);
+    throw errRespones("Jwt expired", 401, "auth");
   }
 });
 
