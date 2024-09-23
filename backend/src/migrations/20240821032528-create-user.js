@@ -22,16 +22,9 @@ module.exports = {
         type: Sequelize.STRING,
         unique: true,
       },
-      email_verified: {
-        type: Sequelize.BOOLEAN,
-        defaultValue: false,
-      },
       email_verified_at: {
+        defaultValue: null,
         type: Sequelize.DATE,
-      },
-      phone_number: {
-        type: Sequelize.STRING,
-        unique: true,
       },
       password: {
         allowNull: false,

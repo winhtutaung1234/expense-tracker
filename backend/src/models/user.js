@@ -87,9 +87,7 @@ module.exports = (sequelize, DataTypes) => {
       role_id: DataTypes.BIGINT.UNSIGNED,
       name: DataTypes.STRING,
       email: DataTypes.STRING,
-      email_verified: DataTypes.BOOLEAN,
       email_verified_at: DataTypes.DATE,
-      phone_number: DataTypes.STRING,
       password: DataTypes.STRING,
     },
     {

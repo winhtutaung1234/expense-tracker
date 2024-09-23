@@ -11,6 +11,7 @@ const router = express.Router();
 
 router
   .get("/", readTransactionMiddleware, TransactionController.findAll)
+  .get("/:id", TransactionController.show)
   .post("/", createTransactionMiddleware, TransactionController.create)
   .put("/:id", updateTransactionMiddleware, TransactionController.update)
   .delete("/:id", deleteTransactionMiddleware, TransactionController.destroy);

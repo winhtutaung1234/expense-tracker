@@ -18,6 +18,7 @@ const setJwtRefreshCookie = require("../../../utils/auth/setJwtRefreshCookie");
 
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
+const UserService = require("../../../services/v1/UserService");
 
 const include = [Role];
 
@@ -41,27 +42,26 @@ module.exports = {
   }),
 
   create: asyncHandler(async (req, res) => {
-    const user = await User.register(req.body);
-    const verificationToken = await generateEmailVerificationToken(user);
+    const user = await UserService.register(req.body);
 
-    if (verificationToken) {
-      sendEmailQueue.add({ email: user.email, url: verificationToken.url });
+    if (user) {
+      const emailVerifyToken = await UserService.sendEmailVerification(user);
 
-      const emailVerifyToken = jwt.sign(
-        { id: user.id },
-        process.env.EMAIL_VERIFY_SECRET
-      );
-      res.cookie("email_verify_token", emailVerifyToken, { httpOnly: true });
+      res.cookie("email_verify_token", emailVerifyToken, {
+        httpOnly: true,
+      });
 
       return res.status(201).json({ msg: "User register success" });
+    } else {
+      throw errResponse("User not found", 404, "user");
     }
   }),
 
   login: asyncHandler(async (req, res) => {
     const user = await User.login(req.body);
 
-    // if user email_verified
-    if (user.email_verified) {
+    // if user email_verified_at has date
+    if (user.email_verified_at) {
       const { accessToken, refreshToken } =
         await generateAccessAndRefreshTokens(user);
 

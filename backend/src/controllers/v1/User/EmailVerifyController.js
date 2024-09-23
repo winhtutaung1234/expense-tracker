@@ -24,7 +24,6 @@ module.exports = {
     const user = await User.findByPk(user_id);
     if (!user) return res.status(404).json({ msg: "User not found" });
 
-    user.email_verified = true;
     user.email_verified_at = new Date();
 
     const { accessToken, refreshToken } = await generateAccessAndRefreshTokens(
@@ -58,7 +57,7 @@ module.exports = {
     const user = await User.findByPk(decoded.id);
     if (!user) return res.status(404).json({ msg: "User not found" });
 
-    if (user.email_verified)
+    if (user.email_verified_at)
       return res.status(400).json({ msg: "Email already verified" });
     await EmailVerificationToken.destroy({ where: { user_id: user.id } });
 

@@ -24,9 +24,28 @@ class TransactionService {
           attributes: ["name"],
         },
       ],
+      order: [["created_at", "DESC"]],
     });
 
     return transactions;
+  }
+
+  async getTransaction(id) {
+    const transaction = await Transaction.findByPk(id, {
+      include: [
+        {
+          model: Currency,
+          attributes: ["code", "symbol", "symbol_position", "decimal_places"],
+        },
+        {
+          model: Category,
+          attributes: ["name"],
+        },
+      ],
+      order: [["created_at", "DESC"]],
+    });
+
+    return transaction;
   }
 
   async createTransaction(account_id, data) {

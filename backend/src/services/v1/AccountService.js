@@ -8,6 +8,7 @@ class AccountService {
     const accounts = await Account.findAll({
       where: { user_id: userId },
       include: Currency,
+      order: [["created_at", "DESC"]],
     });
 
     if (accounts.length === 0) {
