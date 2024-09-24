@@ -1,16 +1,18 @@
 import { ChangeEvent, MouseEvent, useEffect, useRef, useState } from 'react'
 import { AccountForm, type Account as AccountType } from '../../Types/Account';
-import AccountService from '../../Services/Account/Account';
+import AccountService from '../../Services/Account';
 import { Column, Table } from '../../Components/Table';
 import formatDecimal from '../../Utils/FormatDecimal';
-import formatCurrencySymbol from '../../Utils/FormatCurrencySymbol';
-import Currency from '../../Services/Currency/Currency';
+import formatCurrency from '../../Utils/FormatCurrency';
+import Currency from '../../Services/Currency';
 import { Currency as CurrencyType } from '../../Types/Currency';
 import Validator from '../../Validator';
 import Error from '../../Components/Errors';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faEdit, faEye, faTrash } from '@fortawesome/free-solid-svg-icons';
 import { Modal } from '../../Components/Modal';
+import getError from '../../Utils/getError';
+import { NavLink } from 'react-router-dom';
 
 const Account = () => {
 
@@ -27,7 +29,6 @@ const Account = () => {
     //Error
     const [accountFormDataError, setAccountFormDataError] = useState<Partial<Record<keyof AccountForm, string[]>>>();
     const resetErrorTimeoutRef = useRef<number | null>(null);
-    const [error, setError] = useState<string | null>();
 
     //Modal
     const [showWarningModal, setShowWarningModal] = useState(false);
@@ -48,7 +49,7 @@ const Account = () => {
 
             })
 
-        Currency.getCurrencies()
+        Currency.getAll()
             .then((data) => {
                 setAllCurrencies(data);
                 if (data.length > 0) {
@@ -100,11 +101,13 @@ const Account = () => {
                     });
                 })
                 .catch((error) => {
-                    setError(error.msg);
+                    const formError = getError(error);
+                    setAccountFormDataError(formError);
+
                     resetErrorTimeoutRef.current = window.setTimeout(() => {
-                        setError(null);
+                        setAccountFormDataError({});
                     }, 2000);
-                })
+                });
         } else {
             resetErrorTimeoutRef.current = window.setTimeout(() => {
                 setAccountFormDataError({});
@@ -121,7 +124,6 @@ const Account = () => {
     }
 
     const confirmDelete = () => {
-        console.log(selectedDeleteID);
         if (!selectedDeleteID) return;
         AccountService.deleteAccount(selectedDeleteID)
             .then(() => {
@@ -196,9 +198,10 @@ const Account = () => {
                     });
                 })
                 .catch((error) => {
-                    setError(error.msg);
+                    const formError = getError(error);
+                    setAccountFormDataError(formError);
                     resetErrorTimeoutRef.current = window.setTimeout(() => {
-                        setError(null);
+                        setAccountFormDataError({});
                     }, 2000);
                 })
         }
@@ -206,7 +209,7 @@ const Account = () => {
     /* End of Edit Account */
 
     return (
-        <main className='min-h-[200svh]'>
+        <main className=''>
             {showWarningModal && <Modal onConfirm={confirmDelete} onClose={rejectDelete} type='warning' confirmButtonText='Delete' text='Are you sure you want to delete this Account?' />}
             <div className='flex gap-10 dark:text-white max-lg:flex-col flex-wrap'>
                 <form className='bg-gray border border-light-yellow border-opacity-50 px-6 pt-4 pb-6 flex flex-col gap-5 flex-[0.3] max-lg:w-1/2 mx-auto max-md:w-[65%] max-sm:w-[90%] rounded-xl h-full sticky'>
@@ -287,11 +290,6 @@ const Account = () => {
                             />
                         </div>
                         <Error allErrors={accountFormDataError} showError='description' />
-                        {error &&
-                            <div className='text-red-500 self-start mt-1'>
-                                {error}
-                            </div>
-                        }
                     </div>
                     {selectedEditID ? (
                         <div className='flex gap-3 mt-4'>
@@ -320,54 +318,51 @@ const Account = () => {
                 </form>
                 <div className='flex-[0.7] flex flex-col'>
                     <p className='font-inter text-[32px] text-light-yellow mb-6'>Your Accounts</p>
-                    {
-                        allAccounts && (
-                            <Table<AccountType>
-                                dataSource={allAccounts}
-                            >
-                                <Column
-                                    dataIndex="name"
-                                    title="Account"
-                                />
-                                <Column
-                                    title="Balance"
-                                    dataIndex="balance"
-                                    sort
-                                    render={(value: AccountType[keyof AccountType], data: AccountType) => {
-                                        let modifiedBalance = formatDecimal(data.balance, data.currency.decimal_places);
-                                        modifiedBalance = formatCurrencySymbol(modifiedBalance, data.currency.symbol, data.currency.symbol_position);
-                                        return modifiedBalance;
-                                    }}
-                                />
+                    <Table<AccountType>
+                        dataSource={allAccounts}
+                    >
+                        <Column
+                            dataIndex="name"
+                            title="Account"
+                        />
+                        <Column
+                            title="Balance"
+                            dataIndex="balance"
+                            className='whitespace-nowrap'
+                            sort
+                            render={(value: AccountType["balance"], data: AccountType) => {
+                                let modifiedBalance = formatCurrency(value, data.currency.symbol, data.currency.symbol_position, data.currency.decimal_places);
+                                return modifiedBalance;
+                            }}
+                        />
 
-                                <Column
-                                    dataIndex="description"
-                                    title="Description"
-                                    className='text-[12px]'
-                                    width='45%'
-                                />
-                                <Column
-                                    title="Action"
-                                    dataIndex="id"
-                                    render={(value) => {
-                                        return (
-                                            <div className='flex gap-4'>
-                                                <a>
-                                                    <FontAwesomeIcon icon={faEye} className='text-success text-[20px]' />
-                                                </a>
-                                                <button onClick={() => handleEditClick(value)}>
-                                                    <FontAwesomeIcon icon={faEdit} className='text-primary text-[20px]' />
-                                                </button>
-                                                <button onClick={() => handleDeleteAccountClick(value)}>
-                                                    <FontAwesomeIcon icon={faTrash} className='text-danger text-[20px]' />
-                                                </button>
-                                            </div>
-                                        )
-                                    }}
-                                />
-                            </Table>
-                        )
-                    }
+                        <Column
+                            dataIndex="description"
+                            title="Description"
+                            className='text-[12px]'
+                            width='45%'
+                        />
+                        <Column
+                            title="Action"
+                            dataIndex="id"
+                            render={(value: AccountType["id"]) => {
+                                return (
+                                    <div className='flex gap-4'>
+                                        <NavLink to="/transactions" state={{ account_id: value }}>
+                                            <FontAwesomeIcon icon={faEye} className='text-success text-[20px]' />
+                                        </NavLink>
+                                        <button onClick={() => handleEditClick(value)}>
+                                            <FontAwesomeIcon icon={faEdit} className='text-primary text-[20px]' />
+                                        </button>
+                                        <button onClick={() => handleDeleteAccountClick(value)}>
+                                            <FontAwesomeIcon icon={faTrash} className='text-danger text-[20px]' />
+                                        </button>
+                                    </div>
+                                )
+                            }}
+                        />
+                    </Table>
+
                 </div>
             </div>
         </main >

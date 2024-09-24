@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Outlet, useLocation, useNavigate } from 'react-router-dom'
-import Auth from '../../Services/Auth/Auth';
+import Auth from '../../Services/Auth';
 import { User } from '../../Types/User';
 import Nav from '../../Components/Nav/Nav';
 
@@ -52,7 +52,7 @@ const Master = () => {
     }, [pathname]);
 
     useEffect(() => {
-        if (user && !user.email_verified) {
+        if (user && !user.email_verified_at) {
             navigate('/email-verify');
         }
     }, [user])
@@ -60,12 +60,12 @@ const Master = () => {
     return (
         <>
             {
-                user && user.email_verified && (
+                user && user.email_verified_at && (
                     <Nav user={user} showNav={showNav} />
                 )
             }
 
-            <div className={`xl:px-36 px-4 ${user && user.email_verified && "mt-40"} min-h-[100svh]`}>
+            <div className={`xl:px-36 px-4 ${user && user.email_verified_at && "mt-40"}`}>
                 {user && !loading && (
                     <Outlet />
                 )}

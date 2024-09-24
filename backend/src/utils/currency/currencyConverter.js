@@ -34,7 +34,7 @@ async function currencyConverter(account_id, currency_id, amount) {
       const res = await fetch(api);
       const data = await res.json();
 
-      exchange_rate = data.conversion_rate.toFixed(4);
+      exchange_rate = data.conversion_rate.toFixed(5);
       convertedAmount = data.conversion_result.toFixed(
         account.Currency.decimal_places
       );
@@ -63,9 +63,11 @@ async function currencyConverter(account_id, currency_id, amount) {
     }
   }
 
-  console.log("converted Amount: ", convertedAmount);
-
-  return { exchange_rate, convertedAmount };
+  return {
+    exchange_rate,
+    convertedAmount,
+    convertedCurrencyId: account.currency_id,
+  };
 }
 
 module.exports = currencyConverter;

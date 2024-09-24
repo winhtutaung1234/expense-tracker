@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import Logo from '../../../Assets/Logo';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { VerifyEmailProps } from '../../../Types/Auth/Email';
-import Auth from '../../../Services/Auth/Auth';
+import Auth from '../../../Services/Auth';
 import Storage from '../../../Services/Storage';
 
 const EmailVerification = () => {

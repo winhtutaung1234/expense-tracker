@@ -1,38 +1,28 @@
 import { TableRowProps } from '../Types/Props';
 
 const TableRow = <T,>({ data, column }: TableRowProps<T>) => {
+    const { className = "" } = column;
 
-    const { className = "" } = column
-
-    if (column.dataIndex && !column.render) {
+    if (column.dataIndex) {
         const cellValue = data[column.dataIndex as keyof T];
 
-        if (cellValue) {
+        if (column.render) {
             return (
                 <td className={`font-montserrat py-4 px-3 pt-3 ${className}`}>
-                    {String(cellValue)}
+                    {column.render(cellValue as T[keyof T] extends string ? T[keyof T] : T[keyof T] extends object ? T[keyof T] : never, data)}
                 </td>
             );
-        } else {
-            return (
-                <td className={`font-montserrat py-4 px-3 pt-3 ${className}`} />
-            );
         }
-    }
-
-    if (column.render) {
 
         return (
             <td className={`font-montserrat py-4 px-3 pt-3 ${className}`}>
-                {column.render(data[column.dataIndex as keyof T] as T[keyof T], data)}
+                {cellValue !== undefined ? String(cellValue) : null}
             </td>
-        )
+        );
     }
 
     return (
-        <td className={`font-montserrat py-4 px-3 pt-3 ${className}`}>
-
-        </td>
+        <td className={`font-montserrat py-4 px-3 pt-3 ${className}`} />
     );
 };
 

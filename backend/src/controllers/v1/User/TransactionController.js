@@ -35,12 +35,12 @@ module.exports = {
 
   update: asyncHandler(async (req, res) => {
     const { id } = req.params;
-    const { account_id } = req.body;
+    const { user } = req;
 
     const transaction = await TransactionService.updateTransaction(
       id,
       req.body,
-      account_id
+      user.id
     );
 
     return res.json(new TransactionResource(transaction).exec());
@@ -48,9 +48,11 @@ module.exports = {
 
   destroy: asyncHandler(async (req, res) => {
     const { id } = req.params;
-    const { account_id } = req.body;
+    const { user } = req;
 
-    await TransactionService.deleteTransaction(id, account_id);
+    console.log("destory transaction: ", user.id);
+
+    await TransactionService.deleteTransaction(id, user.id);
     return res.sendStatus(204);
   }),
 };

@@ -10,7 +10,7 @@ type ColumnPropsBase<T> = {
 
 type DataIndexRequired<T> = ColumnPropsBase<T> & {
     dataIndex: keyof T;
-    render?: (value: T[keyof T], data: T) => ReactElement | string | number;
+    render?: (value: T[keyof T] extends string ? T[keyof T] : T[keyof T] extends object ? T[keyof T] : never, data: T) => ReactElement | string | number;
 };
 
 type RenderRequired<T> = ColumnPropsBase<T> & {

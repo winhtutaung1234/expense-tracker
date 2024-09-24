@@ -23,7 +23,7 @@ module.exports = {
       },
       amount: {
         allowNull: false,
-        type: Sequelize.DECIMAL,
+        type: Sequelize.DECIMAL(10, 2),
       },
       currency_id: {
         allowNull: false,
@@ -35,7 +35,7 @@ module.exports = {
       },
       exchange_rate: {
         allowNull: false,
-        type: Sequelize.DECIMAL(15, 2),
+        type: Sequelize.DECIMAL(15, 5),
       },
       created_at: {
         allowNull: false,
