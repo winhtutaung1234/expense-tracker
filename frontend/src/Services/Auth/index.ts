@@ -9,17 +9,17 @@ import Storage from "../Storage";
 
 class Auth {
     static async verify(): Promise<User> {
+        const accessToken = Storage.getItem('Access Token');
+        if (!accessToken) {
+            throw new Error('No access token available.');
+        }
+
         try {
             const response = await api.get<User>('/verify');
             return response.data;
         } catch (error) {
-            try {
-                await this.refreshToken();
-                return await this.verify();
-            } catch (refreshError) {
-                Storage.clear();
-                throw error;
-            }
+            Storage.clear();
+            throw error;
         }
     }
 

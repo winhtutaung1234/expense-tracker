@@ -2,8 +2,7 @@ type User = {
     id: number;
     role_id: number;
     name: string;
-    email: string;
-    email_verified: boolean;
+    email_verified_at: boolean;
     exp: number;
     iat: number;
 }

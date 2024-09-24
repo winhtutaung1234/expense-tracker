@@ -22,31 +22,34 @@ const Table = <T,>({ children, dataSource }: TableProps<T>) => {
   }, [children]);
 
   useEffect(() => {
-    const updatedData = [...dataSource];
+    let updatedData: T[] = []
+    if (dataSource) {
+      updatedData = [...dataSource];
 
-    if (sortConfig && sortConfig.key) {
-      const { key, direction } = sortConfig;
-      const sortOrder = direction === 'asc' ? 1 : -1;
+      if (sortConfig && sortConfig.key) {
+        const { key, direction } = sortConfig;
+        const sortOrder = direction === 'asc' ? 1 : -1;
 
-      updatedData.sort((a, b) => {
-        const aValue = a[key];
-        const bValue = b[key];
+        updatedData.sort((a, b) => {
+          const aValue = a[key];
+          const bValue = b[key];
 
-        const aNumber = Number(aValue);
-        const bNumber = Number(bValue);
+          const aNumber = Number(aValue);
+          const bNumber = Number(bValue);
 
-        if (!isNaN(aNumber) && !isNaN(bNumber)) {
-          return (aNumber - bNumber) * sortOrder;
-        }
+          if (!isNaN(aNumber) && !isNaN(bNumber)) {
+            return (aNumber - bNumber) * sortOrder;
+          }
 
-        if (typeof aValue === 'string' && typeof bValue === 'string') {
-          return (aValue.localeCompare(bValue)) * sortOrder;
-        }
+          if (typeof aValue === 'string' && typeof bValue === 'string') {
+            return (aValue.localeCompare(bValue)) * sortOrder;
+          }
 
-        if (aValue < bValue) return -1 * sortOrder;
-        if (aValue > bValue) return 1 * sortOrder;
-        return 0;
-      });
+          if (aValue < bValue) return -1 * sortOrder;
+          if (aValue > bValue) return 1 * sortOrder;
+          return 0;
+        });
+      }
     }
 
     setAllFilteredData(updatedData);
@@ -65,13 +68,18 @@ const Table = <T,>({ children, dataSource }: TableProps<T>) => {
           </tr>
         </thead>
         <tbody>
-          {filteredData.length > 0 && filteredData.map((data, index) => (
+          {filteredData && filteredData.length > 0 && filteredData.map((data, index) => (
             <tr key={index} className='border-t-[1px] border-t-[rgba(255,255,255,0.5)]'>
               {columns.length > 0 && columns.map((column, index) => (
                 <TableRow key={index} data={data} column={column} />
               ))}
             </tr>
           ))}
+          {filteredData && filteredData.length == 0 && (
+            <tr className='border-t-[1px] border-t-[rgba(255,255,255,0.5)]'>
+              <td colSpan={columns && columns.length} className='text-center pt-5'>No Data Yet</td>
+            </tr>
+          )}
         </tbody>
       </table>
     </TableContext.Provider>

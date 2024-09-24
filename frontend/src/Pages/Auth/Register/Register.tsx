@@ -5,7 +5,8 @@ import { Link, useNavigate } from 'react-router-dom'
 import { RegisterForm } from '../../../Types/Auth/Register'
 import Validator from '../../../Validator'
 import Error from '../../../Components/Errors'
-import Auth from '../../../Services/Auth/Auth'
+import Auth from '../../../Services/Auth'
+import getError from '../../../Utils/getError'
 
 const Register = () => {
     const [registerFormData, setRegisterFormData] = useState<RegisterForm>({
@@ -14,8 +15,6 @@ const Register = () => {
         password: "",
         confirmpassword: "",
     })
-
-    const [error, setError] = useState<string | null>();
 
     const [registerFormDataError, setRegisterFormDataError] = useState<Partial<Record<keyof RegisterForm, string[]>>>();
 
@@ -50,9 +49,10 @@ const Register = () => {
                     navigate('/email-verify', { state: { email: registerFormData.email } });
                 })
                 .catch((error) => {
-                    setError(error.msg);
+                    const formError = getError(error);
+                    setRegisterFormDataError(formError);
                     resetErrorTimeoutRef.current = window.setTimeout(() => {
-                        setError(null);
+                        setRegisterFormDataError({});
                     }, 2000);
                 })
         } else {
@@ -120,11 +120,7 @@ const Register = () => {
                         className="dark:bg-gray dark:text-white placeholder:text-black shadow placeholder:dark:text-white placeholder:opacity-50 placeholder:font-montserrat py-2 ps-10 w-full rounded-md" placeholder="Confirm Password" />
                 </div>
                 <Error allErrors={registerFormDataError} showError="confirmpassword" />
-                <a href='#' className='text-dark-yellow dark:text-yellow text-sm self-end mt-2 font-montserrat'>Forgot Password?</a>   {error &&
-                    <div className='text-red-500 self-start mt-1'>
-                        {error}
-                    </div>
-                }
+                <a href='#' className='text-dark-yellow dark:text-yellow text-sm self-end mt-2 font-montserrat'>Forgot Password?</a>
                 <button onClick={handleRegisterClick} className='bg-yellow w-full py-2 rounded-md mt-5 font-montserrat bg-login-button shadow'>Register</button>
                 <div className='w-full flex justify-between items-center opacity-25 dark:opacity-50 mt-8'>
                     <div className='h-[1px] border dark:border-white w-[45%]'></div>

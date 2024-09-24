@@ -1,5 +1,5 @@
 type LoginForm = {
-    loginInfo: string;
+    email: string;
     password: string;
 }
 

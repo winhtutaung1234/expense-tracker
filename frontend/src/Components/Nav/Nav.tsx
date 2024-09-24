@@ -2,7 +2,7 @@ import { useEffect, useState, useRef } from 'react';
 import Logo from '../../Assets/Logo';
 import { NavProps } from '../../Types/Props/Nav';
 import { Modal } from '../Modal';
-import Auth from '../../Services/Auth/Auth';
+import Auth from '../../Services/Auth';
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 
 const Nav = (props: NavProps) => {
@@ -80,9 +80,7 @@ const Nav = (props: NavProps) => {
                 </div>
                 <div className='flex flex-[0.7] justify-between z-20 dark:text-white'>
                     <NavLink to={"/"}>Dashboard</NavLink>
-                    <a>
-                        <p>Transactions</p>
-                    </a>
+                    <NavLink to="/transactions">Transaction</NavLink>
                     <a>
                         <p>Finance</p>
                     </a>

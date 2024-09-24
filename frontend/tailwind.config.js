@@ -24,6 +24,8 @@ export default {
         'yellow': "#FFDC26",
         'light-yellow': "#FDE460",
         'dark-yellow': "#BB9D01",
+        'light-red': "#FF5649",
+        'light-green': "#05CE73",
         'success': "#009652",
         'primary': "#2196F3",
         'danger': "#F44336",

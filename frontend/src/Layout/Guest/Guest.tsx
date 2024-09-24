@@ -1,6 +1,6 @@
 import { useEffect } from 'react'
 import { Outlet, useNavigate } from 'react-router-dom'
-import Auth from '../../Services/Auth/Auth'
+import Auth from '../../Services/Auth'
 import Storage from '../../Services/Storage';
 
 const Guest = () => {
