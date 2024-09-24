@@ -50,8 +50,9 @@ const Transaction = () => {
     //Edit
     const [selectedEditID, setSelectedEditID] = useState<string | number | null>(null);
 
-    //Selected Account Transactions
+    //Selected Account Transactions + Account Balance
     const [selectedAccountTransactions, setSelectedAccountTransactions] = useState<TransactionType[]>([]);
+    const [selectedAccountBalance, setSelectedAccountBalance] = useState<string | null>(null);
 
     //Fetch Necessary Data
     useEffect(() => {
@@ -61,6 +62,8 @@ const Transaction = () => {
                     setAllAccounts(data);
                     if (!transactionFormData.account_id) {
                         setTransactionFormData(prevData => ({ ...prevData, account_id: data[0].id }))
+                        const accountBalance = formatCurrency(data[0].balance, "", data[0].currency.symbol_position, data[0].currency.decimal_places);
+                        setSelectedAccountBalance(`${accountBalance} ${data[0].currency.code}`)
                     }
                 }
             })
@@ -127,6 +130,8 @@ const Transaction = () => {
             AccountService.getAccount(transactionFormData.account_id)
                 .then((data) => {
                     setAllAccounts(prevData => (prevData.map(account => account.id == transactionFormData.account_id ? data : account)))
+                    const accountBalance = formatCurrency(data.balance, "", data.currency.symbol_position, data.currency.decimal_places);
+                    setSelectedAccountBalance(`${accountBalance} ${data.currency.code}`)
                     TransactionService.getTransactionsByAccount(transactionFormData.account_id)
                         .then((data) => {
                             setSelectedAccountTransactions(data);
@@ -164,8 +169,21 @@ const Transaction = () => {
     /* End of Create Transaction */
 
     /* Start of Edit Transaction */
-    const handleEditCick = (id: number) => {
-
+    const handleEditCick = (id: number | string) => {
+        setSelectedEditID(id);
+        TransactionService.getTransaction(id)
+            .then((data) => {
+                setTransactionFormData({
+                    account_id: data.account.id,
+                    amount: data.amount,
+                    category_id: data.category_id,
+                    currency_id: data.currency_id,
+                    description: data.description,
+                    transaction_type: data.transaction_type
+                })
+            })
+            .catch(() => {
+            })
     }
     /* End of Edit Transaction */
 
@@ -332,8 +350,7 @@ const Transaction = () => {
                         <div className='flex flex-col'>
                             <p className='text-[18px] font-inter'>Your Balance</p>
                             <p className='text-[32px] font-inter font-bold'>
-                                {allAccounts && transactionFormData.account_id && allAccounts.find(account => account.id == transactionFormData.account_id) &&
-                                    `${allAccounts.find(account => account.id == transactionFormData.account_id)?.balance} ${allAccounts.find(account => account.id == transactionFormData.account_id)?.currency.code}`}
+                                {selectedAccountBalance && selectedAccountBalance}
                             </p>
                         </div>
                         <div className='flex flex-col items-end gap-2'>
@@ -399,7 +416,7 @@ const Transaction = () => {
                                         <NavLink to="/transactions" state={{ account_id: value }}>
                                             <FontAwesomeIcon icon={faEye} className='text-success text-[20px]' />
                                         </NavLink>
-                                        <button>
+                                        <button onClick={() => handleEditCick(value)}>
                                             <FontAwesomeIcon icon={faEdit} className='text-primary text-[20px]' />
                                         </button>
                                         <button onClick={() => handleDeleteAccountClick(value)}>

@@ -64,7 +64,7 @@ export default {
         },
         closeDropDown: {
           '0%': { transform: "translateY(0)", opacity: 1 },
-          '100%': { transform: "translateY(-8px)", opacity: 0 }
+          '100%': { transform: "translateY(-8px)", opacity: 0, display: "none" }
         },
       },
       animation: {

@@ -13,7 +13,6 @@ class Auth {
         if (!accessToken) {
             throw new Error('No access token available.');
         }
-
         try {
             const response = await api.get<User>('/verify');
             return response.data;
