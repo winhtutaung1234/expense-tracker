@@ -53,8 +53,11 @@ class TransactionService {
       data;
 
     // convert appropiate currency based on account's currecny
-    const { exchange_rate, convertedAmount, convertedCurrencyId } =
-      await currencyConverter(account_id, currency_id, amount);
+    const { exchange_rate, convertedAmount } = await currencyConverter(
+      account_id,
+      currency_id,
+      amount
+    );
 
     await addTransactionToAccountBalance({
       account_id,
@@ -68,7 +71,7 @@ class TransactionService {
       category_id,
       transaction_type,
       amount: convertedAmount,
-      currency_id: convertedCurrencyId,
+      currency_id,
       description,
       exchange_rate: exchange_rate,
     });
@@ -93,26 +96,29 @@ class TransactionService {
     return transaction;
   }
 
-  async updateTransaction(id, data, userId) {
+  async updateTransaction(id, data, account_id) {
     const { category_id, transaction_type, amount, currency_id, description } =
       data;
 
-    const transaction = await Transaction.findByPk(id, { include: Account });
+    const transaction = await Transaction.findByPk(id);
 
     if (!transaction) {
       throw errResponse("Transaction not found", 404);
     }
 
-    if (transaction.Account.user_id !== userId) {
-      throw errResponse("Unauthorized to update", 403);
+    if (transaction.account_id !== Number(account_id)) {
+      throw errResponse("Account doesn't match to update the transaction", 400);
     }
 
     // convert appropiate currency based on account's currecny
-    const { exchange_rate, convertedAmount, convertedCurrencyId } =
-      await currencyConverter(transaction.Account.id, currency_id, amount);
+    const { exchange_rate, convertedAmount } = await currencyConverter(
+      account_id,
+      currency_id,
+      amount
+    );
 
     await updateTransactionToAccountBalance({
-      account_id: transaction.Account.id,
+      account_id,
       convertedAmount,
       transaction_type,
       transaction_id: transaction.id,
@@ -120,11 +126,11 @@ class TransactionService {
 
     // Create the transaction with the converted amount and exchange rate
     await transaction.update({
-      account_id: transaction.Account.id,
+      account_id,
       category_id,
       transaction_type,
       amount: convertedAmount,
-      currency_id: convertedCurrencyId,
+      currency_id,
       description,
       exchange_rate: exchange_rate,
     });
@@ -149,15 +155,15 @@ class TransactionService {
     return updatedTransaction;
   }
 
-  async deleteTransaction(id, userId) {
-    const transaction = await Transaction.findByPk(id, { include: Account });
+  async deleteTransaction(id, account_id) {
+    const transaction = await Transaction.findByPk(id);
 
     if (!transaction) {
       throw errResponse("Transaction not found", 404);
     }
 
-    if (transaction.Account.user_id !== userId) {
-      throw errResponse("Unauthorized to delete", 403);
+    if (transaction.account_id !== account_id) {
+      throw errResponse("Account doesn't match to delete the transaction", 403);
     }
 
     await transaction.destroy();
