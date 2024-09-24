@@ -19,19 +19,21 @@ const setJwtRefreshCookie = require("../../../utils/auth/setJwtRefreshCookie");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const UserService = require("../../../services/v1/UserService");
-
-const include = [Role];
+const EmailService = require("../../../services/v1/EmailService");
+const errResponse = require("../../../utils/error/errResponse");
 
 module.exports = {
   findAll: asyncHandler(async (req, res) => {
-    const users = await User.findAll({ include });
+    const users = await UserService.getAllUsers();
+    if (!users) throw errResponse("Users not found", 404, "user");
     return res.json(UserResource.collection(users));
   }),
 
   show: asyncHandler(async (req, res) => {
     const { id } = req.params;
 
-    const user = await User.findByPk(id, { include });
+    const user = await UserService.getUser(id);
+    if (!user) throw errResponse("User not found", 404, "user");
     return res.json(new UserResource(user).exec());
   }),
 
@@ -41,15 +43,11 @@ module.exports = {
     return res.json(user);
   }),
 
-  create: asyncHandler(async (req, res) => {
+  register: asyncHandler(async (req, res) => {
     const user = await UserService.register(req.body);
 
     if (user) {
-      const emailVerifyToken = await UserService.sendEmailVerification(user);
-
-      res.cookie("email_verify_token", emailVerifyToken, {
-        httpOnly: true,
-      });
+      await EmailService.sendEmailVerificationLink(user);
 
       return res.status(201).json({ msg: "User register success" });
     } else {
@@ -58,7 +56,8 @@ module.exports = {
   }),
 
   login: asyncHandler(async (req, res) => {
-    const user = await User.login(req.body);
+    const { email, password } = req.body;
+    const user = await UserService.login(email, password);
 
     // if user email_verified_at has date
     if (user.email_verified_at) {
@@ -70,21 +69,9 @@ module.exports = {
       return res.json({ accessToken });
     }
 
-    if (!user.email_verified) {
-      const verificationToken = await generateEmailVerificationToken(user);
-
-      if (verificationToken) {
-        sendEmailQueue.add({ email: user.email, url: verificationToken.url });
-
-        const emailVerifyToken = jwt.sign(
-          { id: user.id },
-          process.env.EMAIL_VERIFY_SECRET
-        );
-
-        res.cookie("email_verify_token", emailVerifyToken, { httpOnly: true });
-
-        return res.json({ msg: "Please verify your email" });
-      }
+    if (!user.email_verified_at) {
+      await EmailService.sendEmailVerificationLink(user);
+      return res.json({ msg: "Please verify your email" });
     }
   }),
 
@@ -92,62 +79,36 @@ module.exports = {
     const { jwt_refresh } = req.cookies;
 
     if (!jwt_refresh) {
-      return res.status(404).json({
-        msg: "Refresh token not found",
-      });
+      throw errResponse("Jwt refresh not found", 401, "jwt_refresh");
     }
 
-    let decoded;
     try {
-      decoded = jwt.verify(jwt_refresh, process.env.JWT_REFRESH_SECRET);
-    } catch (err) {
-      console.log("error: ", err);
-      if (err.message === "jwt expired") {
-        res.cookie("jwt_refresh", "", { maxAge: 1 });
-        return res.status(401).json({ msg: "Jwt refresh expired" });
-      }
-    }
+      const user = await UserService.refreshToken(jwt_refresh);
+      const { accessToken, refreshToken } =
+        await generateAccessAndRefreshTokens(user);
 
-    const user = await User.findByPk(decoded.id);
+      setJwtRefreshCookie(res, refreshToken);
 
-    if (!user) {
-      return res.status(404).json({
-        msg: "User not found",
+      return res.json({
+        accessToken,
       });
+    } catch (err) {
+      if (
+        err.message === "Jwt refresh expired" ||
+        err.message === "Invalid refresh token"
+      ) {
+        res.cookie("jwt_refresh", "", { maxAge: 1 }); // Clear cookie
+      }
+      throw err;
     }
-
-    const refresh = await RefreshToken.findOne({
-      where: { user_id: decoded.id },
-    });
-
-    if (!(await bcrypt.compare(jwt_refresh, refresh.token))) {
-      // delete the cookie of jwt refresh if tokens are not match
-      res.cookie("jwt_refresh", "", { maxAge: 1 });
-      return res.status(400).json({ msg: "Invalid refresh token" });
-    }
-
-    await refresh.destroy();
-    const { accessToken, refreshToken } = await generateAccessAndRefreshTokens(
-      user
-    );
-
-    setJwtRefreshCookie(res, refreshToken);
-
-    return res.json({
-      accessToken,
-    });
   }),
 
   destroy: asyncHandler(async (req, res) => {
     const { id } = req.params;
-
-    const user = await User.findByPk(id);
-
-    if (!user)
-      return res.status(404).json({ msg: `User with ID ${id} not found` });
-
-    await user.destroy();
-
+    const result = await UserService.deleteUser(id);
+    if (!result) {
+      throw errResponse("User deleted failed", 400, "user");
+    }
     return res.json({ msg: "User deleted successfully" });
   }),
 

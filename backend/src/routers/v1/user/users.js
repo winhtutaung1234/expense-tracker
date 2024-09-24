@@ -10,23 +10,19 @@ const {
   reigsterMiddleware,
 } = require("../../../middlewares/UserMiddleware");
 const auth = require("../../../middlewares/AuthMiddleware/auth");
+
 const router = express.Router();
 
-router.get("/users", UserController.findAll);
-
-router.get("/verify", auth, UserController.verify);
-
-// register -> issue access and refresh tokens and generate email verification link
-router.post("/users", reigsterMiddleware, UserController.create);
-
-// login -> issue  access and refresh tokens and generate email verification link
-router.post("/login", loginMiddleware, UserController.login);
+router
+  .get("/users", UserController.findAll)
+  .get("/users/:id", UserController.show)
+  .get("/verify", auth, UserController.verify)
+  .post("/register", reigsterMiddleware, UserController.register)
+  .post("/login", loginMiddleware, UserController.login)
+  .post("/refresh-token", UserController.refresh);
 
 // logout -> needs access token
 router.post("/logout", auth, UserController.logout);
-
-// refresh token -> issue a new access and refresh tokens -> needs access token
-router.post("/refresh-token", UserController.refresh);
 
 // soft deleted user from db -> only permission admin
 router.delete("/users/:id", auth, deleteUserMiddleware, UserController.destroy);

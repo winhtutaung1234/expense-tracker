@@ -33,7 +33,11 @@ const createUserValidation = [
 ];
 
 const loginUserValidation = [
-  body("loginInfo").notEmpty().withMessage("loginInfo is required"),
+  body("email")
+    .notEmpty()
+    .withMessage("Email is required")
+    .isEmail()
+    .withMessage("Email must be email"),
 
   body("password")
     .isString()
