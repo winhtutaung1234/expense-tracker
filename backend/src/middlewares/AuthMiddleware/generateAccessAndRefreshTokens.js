@@ -21,7 +21,7 @@ async function generateAccessAndRefreshTokens(user) {
       role_id: user.role_id,
       name: user.name,
       email: user.email,
-      email_verified: user.email_verified,
+      email_verified_at: user.email_verified_at,
     },
     process.env.JWT_ACCESS_SECRET,
     { expiresIn: process.env.JWT_ACCESS_EXPIRE }
