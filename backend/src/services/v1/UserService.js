@@ -93,6 +93,18 @@ class UserService {
     await user.destroy();
     return true;
   }
+
+  async restoreDelete(userId) {
+    const user = await User.findByPk(userId, { paranoid: false });
+
+    if (!user) {
+      throw errResponse("User not found", 404, "user");
+    }
+
+    await user.restore();
+
+    return true;
+  }
 }
 
 module.exports = new UserService();

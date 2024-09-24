@@ -115,12 +115,9 @@ module.exports = {
   restore: asyncHandler(async (req, res) => {
     const { id } = req.params;
 
-    const user = await User.findByPk(id, { paranoid: false });
+    const result = await UserService.restoreDelete(id);
 
-    if (!user)
-      return res.status(404).json({ msg: `User with ID ${id} not found` });
-
-    await user.restore();
+    if (!result) throw errResponse("Restore delete failed", 400, "user");
 
     return res.json({ msg: "User restored successfully" });
   }),

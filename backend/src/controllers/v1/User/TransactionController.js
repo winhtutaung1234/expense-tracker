@@ -17,7 +17,7 @@ module.exports = {
   }),
 
   show: asyncHandler(async (req, res) => {
-    const { id } = req.query;
+    const { id } = req.params;
     const transaction = await TransactionService.getTransaction(id);
     return res.json(new TransactionResource(transaction).exec());
   }),
