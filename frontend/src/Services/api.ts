@@ -21,8 +21,8 @@ api.interceptors.response.use(
   },
   async (error) => {
     const originalRequest = error.config;
-    if (error.response?.status === 401 && !originalRequest._retry) {
-      originalRequest._retry = true;
+    if (error.response?.status === 401 && !originalRequest.retryAttempted) {
+      originalRequest.retryAttempted = true;
 
       try {
         const refreshTokenResponse = await Auth.refreshToken();
@@ -34,7 +34,7 @@ api.interceptors.response.use(
         return api(originalRequest);
       } catch (refreshError) {
         Storage.clear();
-        console.error('Token refresh failed, logging out:', refreshError);
+        console.error("Token refresh failed, logging out:", refreshError);
         throw refreshError;
       }
     }
