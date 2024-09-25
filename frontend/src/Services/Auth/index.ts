@@ -13,9 +13,6 @@ import Storage from "../Storage";
 
 class Auth {
   static async verify(): Promise<User> {
-    // if (!Storage.getItem('Access Token')) {
-    //     throw "No";
-    // }
     try {
       const response = await api.get<User>("/verify");
       return response.data;
