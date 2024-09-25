@@ -51,6 +51,6 @@ module.exports = {
     const { user } = req;
 
     await TransactionService.deleteTransaction(id, user.id);
-    return res.sendStatus(204);
+    return res.json({ msg: "Transaction deleted successfully" });
   }),
 };
