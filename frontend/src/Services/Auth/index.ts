@@ -12,10 +12,22 @@ import api from "../api";
 import Storage from "../Storage";
 
 class Auth {
-  static async verify(): Promise<User> {
-    const accessToken = Storage.getItem("Access Token");
-    if (!accessToken) {
-      throw new Error("No access token available.");
+    static async verify(): Promise<User> {
+        // if (!Storage.getItem('Access Token')) {
+        //     throw "No";
+        // }
+        try {
+            const response = await api.get<User>('/verify');
+            return response.data;
+        } catch (error) {
+            try {
+                await this.refreshToken();
+                return await this.verify();
+            } catch (error) {
+                Storage.clear();
+                throw error;
+            }
+        }
     }
     try {
       const response = await api.get<User>("/verify");

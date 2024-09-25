@@ -59,7 +59,7 @@ export default {
           '100%': { width: "100%", border: "1px solid #FDE460" }
         },
         openDropDown: {
-          '0%': { transform: "translateY(-8px)", opacity: 0 },
+          '0%': { transform: "translateY(-8px)", opacity: 0, display: "none" },
           '100%': { transform: "translateY(0)", opacity: 1 }
         },
         closeDropDown: {

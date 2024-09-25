@@ -204,6 +204,10 @@ const Account = () => {
                         setAccountFormDataError({});
                     }, 2000);
                 })
+        } else {
+            resetErrorTimeoutRef.current = window.setTimeout(() => {
+                setAccountFormDataError({});
+            }, 2000);
         }
     }
     /* End of Edit Account */
