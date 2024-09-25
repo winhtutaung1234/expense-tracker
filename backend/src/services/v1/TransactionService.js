@@ -2,7 +2,6 @@ const { Transaction } = require("../../models");
 const { Currency } = require("../../models");
 const { Category } = require("../../models");
 const { Account } = require("../../models");
-const { User } = require("../../models");
 
 const errResponse = require("../../utils/error/errResponse");
 const currencyConverter = require("../../utils/currency/currencyConverter");
@@ -10,9 +9,6 @@ const {
   addTransactionToAccountBalance,
   updateTransactionToAccountBalance,
 } = require("../../utils/account/updateAccountBalance");
-const {
-  getFormattedBalance,
-} = require("../../utils/currency/formattedBalance");
 
 class TransactionService {
   async getAllTransactions(account_id) {
@@ -26,6 +22,10 @@ class TransactionService {
         {
           model: Category,
           attributes: ["name"],
+        },
+        {
+          model: Account,
+          attributes: ["id", "balance"],
         },
       ],
       order: [["created_at", "DESC"]],
@@ -44,6 +44,10 @@ class TransactionService {
         {
           model: Category,
           attributes: ["name"],
+        },
+        {
+          model: Account,
+          attributes: ["id", "balance"],
         },
       ],
       order: [["created_at", "DESC"]],
@@ -90,46 +94,39 @@ class TransactionService {
           model: Category,
           attributes: ["name"],
         },
+        {
+          model: Account,
+          attributes: ["id", "balance"],
+        },
       ],
     });
 
     return transaction;
   }
 
-  async updateTransaction(id, data, userId) {
+  async updateTransaction(id, data, account_id) {
     const { category_id, transaction_type, amount, currency_id, description } =
       data;
 
-    const transaction = await Transaction.findByPk(id, {
-      include: [{ model: Account, attributes: ["id", "user_id"] }],
-    });
+    const transaction = await Transaction.findByPk(id);
 
     if (!transaction) {
-      throw errResponse("Transaction not found", 404, "transaction");
+      throw errResponse("Transaction not found", 404);
     }
 
-    const user = await User.findByPk(userId);
-    if (!user) {
-      throw errResponse("User not found", 404, "transaction");
-    }
-
-    if (transaction.Account.user_id !== userId) {
-      throw errResponse(
-        "Unauthorized to update transaction",
-        403,
-        "transaction"
-      );
+    if (transaction.account_id !== Number(account_id)) {
+      throw errResponse("Account doesn't match to update the transaction", 400);
     }
 
     // convert appropiate currency based on account's currecny
     const { exchange_rate, convertedAmount } = await currencyConverter(
-      transaction.Account.id,
+      account_id,
       currency_id,
       amount
     );
 
     await updateTransactionToAccountBalance({
-      account_id: transaction.Account.id,
+      account_id,
       convertedAmount,
       transaction_type,
       transaction_id: transaction.id,
@@ -137,7 +134,7 @@ class TransactionService {
 
     // Create the transaction with the converted amount and exchange rate
     await transaction.update({
-      account_id: transaction.Account.id,
+      account_id,
       category_id,
       transaction_type,
       amount: convertedAmount,
@@ -156,47 +153,26 @@ class TransactionService {
           model: Category,
           attributes: ["name"],
         },
+        {
+          model: Account,
+          attributes: ["id", "balance"],
+        },
       ],
     });
 
     return updatedTransaction;
   }
 
-  async deleteTransaction(id, userId) {
-    const transaction = await Transaction.findByPk(id, {
-      include: [{ model: Account, attributes: ["id", "user_id", "balance"] }],
-    });
+  async deleteTransaction(id, account_id) {
+    const transaction = await Transaction.findByPk(id);
 
     if (!transaction) {
       throw errResponse("Transaction not found", 404);
     }
 
-    const user = await User.findByPk(userId);
-    if (!user) {
-      throw errResponse("User not found", 404, "transaction");
+    if (transaction.account_id !== account_id) {
+      throw errResponse("Account doesn't match to delete the transaction", 403);
     }
-
-    if (transaction.Account.user_id !== userId) {
-      throw errResponse(
-        "Unauthorized to delete transaction",
-        403,
-        "transaction"
-      );
-    }
-
-    if (transaction.transaction_type === "income") {
-      transaction.Account.balance -= transaction.amount;
-    } else {
-      const transactionAmount = await getFormattedBalance(transaction.amount);
-      let accountBalance = await getFormattedBalance(
-        transaction.Account.balance
-      );
-
-      accountBalance += transactionAmount;
-      transaction.Account.balance = accountBalance;
-    }
-
-    await transaction.Account.save();
 
     await transaction.destroy();
     return true;
