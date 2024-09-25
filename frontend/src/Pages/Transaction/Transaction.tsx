@@ -184,7 +184,7 @@ const Transaction = () => {
                                 account_id: allAccounts.length > 0 ? allAccounts[0].id : 0,
                                 amount: "",
                                 category_id: allCategories.length > 0 ? allCategories[0].id : 0,
-                                currency_id: allCurrencies.length > 0 ? allCurrencies[0].id : 0,
+                                currency_id: allCurrencies.length > 0 && transactionFormData.account_id && allAccounts ? allAccounts.find(account => account.id == transactionFormData.account_id)?.currency_id || allCurrencies[0].id : 0,
                                 description: "",
                                 transaction_type: "income"
                             })
@@ -231,7 +231,7 @@ const Transaction = () => {
             account_id: allAccounts.length > 0 ? allAccounts[0].id : 0,
             amount: "",
             category_id: allCategories.length > 0 ? allCategories[0].id : 0,
-            currency_id: allCurrencies.length > 0 ? allCurrencies[0].id : 0,
+            currency_id: allCurrencies.length > 0 && transactionFormData.account_id && allAccounts ? allAccounts.find(account => account.id == transactionFormData.account_id)?.currency_id || allCurrencies[0].id : 0,
             description: "",
             transaction_type: "income"
         })
@@ -255,7 +255,7 @@ const Transaction = () => {
                         account_id: allAccounts.length > 0 ? allAccounts[0].id : 0,
                         amount: "",
                         category_id: allCategories.length > 0 ? allCategories[0].id : 0,
-                        currency_id: allCurrencies.length > 0 ? allCurrencies[0].id : 0,
+                        currency_id: allCurrencies.length > 0 && transactionFormData.account_id && allAccounts ? allAccounts.find(account => account.id == transactionFormData.account_id)?.currency_id || allCurrencies[0].id : 0,
                         description: "",
                         transaction_type: "income"
                     })

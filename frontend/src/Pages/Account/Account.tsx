@@ -85,7 +85,6 @@ const Account = () => {
             balance: ['required', 'number'],
             currency_id: ['required'],
             description: ['nullable'],
-
         }, setAccountFormDataError)
         if (validated) {
             AccountService.createAccount(accountFormData)

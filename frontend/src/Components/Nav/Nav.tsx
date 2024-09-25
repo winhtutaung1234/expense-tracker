@@ -4,6 +4,8 @@ import { NavProps } from '../../Types/Props/Nav';
 import { Modal } from '../Modal';
 import Auth from '../../Services/Auth';
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faArrowRightArrowLeft, faCoins } from '@fortawesome/free-solid-svg-icons';
 
 const Nav = (props: NavProps) => {
     const { user, showNav } = props;
@@ -68,11 +70,9 @@ const Nav = (props: NavProps) => {
         };
     }, [dropdownAnimation]);
 
-    console.log(dropdownAnimation)
-
     return (
         <>
-            <nav className={`flex fixed items-center justify-between top-10 left-1/2 -translate-x-1/2 w-[80%] py-4 ps-8 pe-14 rounded-full transition-all duration-300 z-[999] ${showNav ? "opacity-100" : "opacity-0"}`}>
+            <nav className={`flex fixed items-center justify-between top-10 left-1/2 -translate-x-1/2 w-[80%] py-4 ps-8 pe-14 rounded-full transition-all duration-300 z-[999] ${showNav ? "animate-openNav" : "animate-closeNav"}`}>
                 <div className='flex z-20'>
                     <img width={60} src={Logo} />
                     <div className='flex flex-col items-center'>
@@ -82,10 +82,15 @@ const Nav = (props: NavProps) => {
                 </div>
                 <div className='flex flex-[0.7] justify-between z-20 dark:text-white'>
                     <NavLink to={"/"}>Dashboard</NavLink>
-                    <NavLink to="/transactions">Transaction</NavLink>
-                    <a>
-                        <p>Finance</p>
-                    </a>
+                    <NavLink to="/transactions">
+                        <FontAwesomeIcon icon={faArrowRightArrowLeft} className='me-2' />
+                        Transaction
+                    </NavLink>
+                    <NavLink to="/accounts">
+                        <FontAwesomeIcon icon={faCoins} className='me-2' />
+                        Accounts
+                    </NavLink>
+
                     <div className='relative' ref={dropdownRef}>
                         {user && (
                             <button onClick={toggleDropDown}>{user.name}</button>
@@ -98,7 +103,6 @@ const Nav = (props: NavProps) => {
                             `}
                             style={{ transition: 'opacity 0.25s ease-in-out' }}
                         >
-                            <NavLink to="/accounts">Accounts</NavLink>
                             <a>Setting</a>
                             <button onClick={handleLogoutClick}>Logout</button>
                         </div>

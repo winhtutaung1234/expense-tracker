@@ -66,6 +66,14 @@ export default {
           '0%': { transform: "translateY(0)", opacity: 1 },
           '100%': { transform: "translateY(-8px)", opacity: 0, display: "none" }
         },
+        openNav: {
+          '0%': { opacity: 0, display: "none" },
+          '100%': { opacity: 1 }
+        },
+        closeNav: {
+          '0%': { opacity: 1 },
+          '100%': { opacity: 0, display: "none" }
+        },
       },
       animation: {
         opacityAppear: 'opacityAppear 2s ease-in-out forwards',
@@ -74,6 +82,8 @@ export default {
         takeFullWidth: "takeFullWidth 1.5s ease-in-out forwards",
         openDropDown: "openDropDown .25s ease-in-out forwards",
         closeDropDown: "closeDropDown .25s ease-in-out forwards",
+        openNav: "openNav .25s ease-in-out forwards",
+        closeNav: "closeNav .25s ease-in-out forwards",
       },
     },
   },
