@@ -20,6 +20,15 @@ class Transaction {
         }
     }
 
+    static async updateTransaction(id: string | number, transactionFormData: TransactionForm): Promise<TransactionType> {
+        try {
+            const response = await api.put<TransactionType>(`/transactions/${id}`, transactionFormData)
+            return response.data;
+        } catch (error) {
+            throw error;
+        }
+    }
+
     static async createTransaction(transactionFormData: TransactionForm): Promise<TransactionType> {
         try {
             const response = await api.post<TransactionType>(`/transactions`, transactionFormData);

@@ -21,30 +21,37 @@ api.interceptors.response.use(
   },
   async (error) => {
     const originalRequest = error.config;
-    if (error.response?.status === 401 && !originalRequest._retry) {
-      originalRequest._retry = true;
+    console.log(originalRequest);
+
+    if (error.response?.status === 401 && !originalRequest._retry && originalRequest.url !== "/verify" && originalRequest.url !== "/refresh-token") {
+      originalRequest._retry = true; // Mark as retry
 
       try {
-        const refreshTokenResponse = await Auth.refreshToken();
-        const newAccessToken = refreshTokenResponse.accessToken;
-
-        Storage.setItem("Access Token", newAccessToken);
-        originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
+        await Auth.refreshToken();
 
         return api(originalRequest);
       } catch (refreshError) {
+        console.error("Token refresh failed:", refreshError);
+
         Storage.clear();
-        console.error('Token refresh failed, logging out:', refreshError);
         throw refreshError;
       }
     }
 
-    if (error.response?.status === 404) {
-      console.log("404 Not Found");
+    if (error.response?.status === 401 && originalRequest._retry && originalRequest.url === "/refresh-token") {
+      console.log("Refresh token request failed, logging out...");
+      Storage.clear();  // Clear any stored tokens and user data
+      window.location.href = "/login";  // Redirect the user to the login page
+      throw error;  // Stop the execution and throw the error to prevent further processing
     }
 
-    throw error.response.data;
+    // For other errors, just propagate
+    throw error.response?.data || error;
   }
 );
+
+
+
+
 
 export default api;

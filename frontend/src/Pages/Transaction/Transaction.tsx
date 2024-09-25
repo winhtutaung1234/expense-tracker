@@ -18,6 +18,7 @@ import { faEdit, faEye, faTrash } from '@fortawesome/free-solid-svg-icons';
 import formatDecimal from '../../Utils/FormatDecimal';
 import getError from '../../Utils/getError';
 import Error from '../../Components/Errors';
+import Validator from '../../Validator';
 
 const Transaction = () => {
 
@@ -61,9 +62,12 @@ const Transaction = () => {
                 if (data) {
                     setAllAccounts(data);
                     if (!transactionFormData.account_id) {
-                        setTransactionFormData(prevData => ({ ...prevData, account_id: data[0].id }))
-                        const accountBalance = formatCurrency(data[0].balance, "", data[0].currency.symbol_position, data[0].currency.decimal_places);
-                        setSelectedAccountBalance(`${accountBalance} ${data[0].currency.code}`)
+                        setTransactionFormData(prevData => ({ ...prevData, account_id: data[0].id, currency_id: data[0].currency_id }))
+                    } else {
+                        const selectedAccount = data.find(account => account.id == transactionFormData.account_id);
+                        if (selectedAccount) {
+                            setTransactionFormData(prevData => ({ ...prevData, currency_id: selectedAccount.currency_id }))
+                        }
                     }
                 }
             })
@@ -74,7 +78,7 @@ const Transaction = () => {
         Currency.getAll()
             .then((data) => {
                 setAllCurrencies(data);
-                if (data.length > 0) {
+                if (data.length > 0 && !transactionFormData.currency_id) {
                     setTransactionFormData((prevData) => ({
                         ...prevData,
                         currency_id: data[0].id
@@ -130,8 +134,7 @@ const Transaction = () => {
             AccountService.getAccount(transactionFormData.account_id)
                 .then((data) => {
                     setAllAccounts(prevData => (prevData.map(account => account.id == transactionFormData.account_id ? data : account)))
-                    const accountBalance = formatCurrency(data.balance, "", data.currency.symbol_position, data.currency.decimal_places);
-                    setSelectedAccountBalance(`${accountBalance} ${data.currency.code}`)
+                    setTransactionFormData(prevData => ({ ...prevData, currency_id: data.currency_id }));
                     TransactionService.getTransactionsByAccount(transactionFormData.account_id)
                         .then((data) => {
                             setSelectedAccountTransactions(data);
@@ -144,27 +147,63 @@ const Transaction = () => {
         }
     }, [transactionFormData.account_id])
 
+    useEffect(() => {
+        let selectedAccount;
+        if (transactionFormData.account_id && allAccounts.length > 0) {
+            selectedAccount = allAccounts.find(account => account.id == transactionFormData.account_id);
+        } else if (!transactionFormData.account_id && allAccounts.length > 0) {
+            selectedAccount = allAccounts[0];
+        }
+
+        if (selectedAccount) {
+            const accountBalance = formatCurrency(selectedAccount.balance, "", selectedAccount.currency.symbol_position, selectedAccount.currency.decimal_places);
+            setSelectedAccountBalance(`${accountBalance} ${selectedAccount.currency.code}`)
+        }
+    }, [allAccounts])
+
     /* Start of Create Transaction */
     const handleAddTransactionClick = (e: MouseEvent<HTMLButtonElement>) => {
         e.preventDefault();
-        TransactionService.createTransaction(transactionFormData)
-            .then((data) => {
-                console.log(data);
-                setSelectedAccountTransactions(prevData => [data, ...prevData]);
-                AccountService.getAccount(data.account_id)
-                    .then((data) => {
-                        setAllAccounts(prevData => (prevData.map(account => account.id == transactionFormData.account_id ? data : account)))
-                    })
-                    .catch(() => {
-                    })
-            })
-            .catch((error) => {
-                const formError = getError(error);
-                setTransactionFormDataError(formError);
-                resetErrorTimeoutRef.current = window.setTimeout(() => {
-                    setTransactionFormDataError({});
-                }, 2000);
-            })
+        const validated = Validator(transactionFormData, {
+            account_id: ['required'],
+            amount: ['required'],
+            category_id: ['required'],
+            currency_id: ['required'],
+            description: ['nullable'],
+            transaction_type: ['required']
+        }, setTransactionFormDataError)
+
+        if (validated) {
+            TransactionService.createTransaction(transactionFormData)
+                .then((data) => {
+                    setSelectedAccountTransactions(prevData => [data, ...prevData]);
+                    AccountService.getAccount(data.account_id)
+                        .then((data) => {
+                            setAllAccounts(prevData => (prevData.map(account => account.id == transactionFormData.account_id ? data : account)))
+                            setTransactionFormData({
+                                account_id: allAccounts.length > 0 ? allAccounts[0].id : 0,
+                                amount: "",
+                                category_id: allCategories.length > 0 ? allCategories[0].id : 0,
+                                currency_id: allCurrencies.length > 0 ? allCurrencies[0].id : 0,
+                                description: "",
+                                transaction_type: "income"
+                            })
+                        })
+                        .catch(() => {
+                        })
+                })
+                .catch((error) => {
+                    const formError = getError(error);
+                    setTransactionFormDataError(formError);
+                    resetErrorTimeoutRef.current = window.setTimeout(() => {
+                        setTransactionFormDataError({});
+                    }, 2000);
+                })
+        } else {
+            resetErrorTimeoutRef.current = window.setTimeout(() => {
+                setTransactionFormDataError({});
+            }, 2000);
+        }
     }
     /* End of Create Transaction */
 
@@ -174,7 +213,7 @@ const Transaction = () => {
         TransactionService.getTransaction(id)
             .then((data) => {
                 setTransactionFormData({
-                    account_id: data.account.id,
+                    account_id: data.account_id,
                     amount: data.amount,
                     category_id: data.category_id,
                     currency_id: data.currency_id,
@@ -184,6 +223,56 @@ const Transaction = () => {
             })
             .catch(() => {
             })
+    }
+
+    const handleCancelEditClick = () => {
+        setSelectedEditID(null);
+        setTransactionFormData({
+            account_id: allAccounts.length > 0 ? allAccounts[0].id : 0,
+            amount: "",
+            category_id: allCategories.length > 0 ? allCategories[0].id : 0,
+            currency_id: allCurrencies.length > 0 ? allCurrencies[0].id : 0,
+            description: "",
+            transaction_type: "income"
+        })
+    }
+
+    const handeSaveEditClick = () => {
+        const validated = Validator(transactionFormData, {
+            account_id: ['required'],
+            amount: ['required'],
+            category_id: ['required'],
+            currency_id: ['required'],
+            description: ['nullable'],
+            transaction_type: ['required']
+        }, setTransactionFormDataError)
+        if (validated && selectedEditID) {
+            TransactionService.updateTransaction(selectedEditID, transactionFormData)
+                .then((newTransaction) => {
+                    setSelectedAccountTransactions(prevData => prevData.map(transaction => transaction.id == newTransaction.id ? newTransaction : transaction));
+                    setSelectedEditID(null);
+                    setTransactionFormData({
+                        account_id: allAccounts.length > 0 ? allAccounts[0].id : 0,
+                        amount: "",
+                        category_id: allCategories.length > 0 ? allCategories[0].id : 0,
+                        currency_id: allCurrencies.length > 0 ? allCurrencies[0].id : 0,
+                        description: "",
+                        transaction_type: "income"
+                    })
+                    AccountService.getAccount(newTransaction.account_id)
+                        .then((data) => {
+                            setAllAccounts(prevData => (prevData.map(account => account.id == transactionFormData.account_id ? data : account)))
+                        })
+                        .catch(() => {
+                        })
+                })
+                .catch(() => {
+                })
+        } else {
+            resetErrorTimeoutRef.current = window.setTimeout(() => {
+                setTransactionFormDataError({});
+            }, 2000);
+        }
     }
     /* End of Edit Transaction */
 
@@ -197,7 +286,16 @@ const Transaction = () => {
         if (!selectedDeleteID) return;
         TransactionService.deleteTransaction(selectedDeleteID)
             .then(() => {
-                setSelectedAccountTransactions(prevData => prevData.filter(transaction => transaction.id !== selectedDeleteID))
+                const transaction = selectedAccountTransactions.find(transaction => transaction.id == selectedDeleteID);
+                if (transaction) {
+                    AccountService.getAccount(transaction.account_id)
+                        .then((data) => {
+                            setAllAccounts(prevData => prevData.map(account => account.id === data.id ? data : account));
+                        })
+                        .catch(() => {
+                        })
+                    setSelectedAccountTransactions(prevData => prevData.filter(transaction => transaction.id !== selectedDeleteID))
+                }
                 setSelectedDeleteID(null);
                 setShowWarningModal(false);
             })
@@ -325,12 +423,14 @@ const Transaction = () => {
                         <div className='flex gap-3 mt-4'>
                             <button
                                 type='button'
+                                onClick={handleCancelEditClick}
                                 className='w-1/2 bg-danger rounded-md font-montserrat shadow-lg min-h-[45px] max-h-[45px]'
                             >
                                 Cancel
                             </button>
                             <button
                                 type='button'
+                                onClick={handeSaveEditClick}
                                 className='w-1/2 bg-primary rounded-md font-montserrat shadow-lg min-h-[45px] max-h-[45px]'
                             >
                                 Save

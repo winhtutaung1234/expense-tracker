@@ -5,7 +5,6 @@ import { Currency } from "../Currency";
 type Transaction = {
     id: number;
     account_id: number;
-    account: Omit<Account, "name" | "description" | "user_id" | "currency_id" | "created_at" | "updated_at" | "currency">;
     category_id: number;
     category: Omit<Category, "id" | "created_at" | "updated_at">;
     transaction_type: "income" | "expense";

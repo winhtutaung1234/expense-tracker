@@ -68,6 +68,8 @@ const Nav = (props: NavProps) => {
         };
     }, [dropdownAnimation]);
 
+    console.log(dropdownAnimation)
+
     return (
         <>
             <nav className={`flex fixed items-center justify-between top-10 left-1/2 -translate-x-1/2 w-[80%] py-4 ps-8 pe-14 rounded-full transition-all duration-300 z-[999] ${showNav ? "opacity-100" : "opacity-0"}`}>
@@ -89,9 +91,11 @@ const Nav = (props: NavProps) => {
                             <button onClick={toggleDropDown}>{user.name}</button>
                         )}
                         <div
-                            className={`absolute dark:bg-[#2f2f2f] rounded-sm border border-dark-yellow py-4 px-12 top-[125%] flex flex-col justify-center items-center gap-4 -translate-y-2 opacity-0
+                            className={`absolute dark:bg-[#2f2f2f] rounded-sm border border-dark-yellow py-4 px-12 top-[125%] flex-col justify-center items-center gap-4 -translate-y-2 opacity-0
                             ${dropdownAnimation === 'open' ? "animate-openDropDown opacity-100" : ""}
-                            ${dropdownAnimation === 'close' ? "animate-closeDropDown opacity-0" : ""}`}
+                            ${dropdownAnimation === 'close' ? "animate-closeDropDown opacity-0" : ""}
+                            ${dropdownAnimation ? "flex" : "hidden"}
+                            `}
                             style={{ transition: 'opacity 0.25s ease-in-out' }}
                         >
                             <NavLink to="/accounts">Accounts</NavLink>
