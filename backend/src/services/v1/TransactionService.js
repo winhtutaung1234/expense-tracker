@@ -27,10 +27,6 @@ class TransactionService {
           model: Category,
           attributes: ["name"],
         },
-        {
-          model: Account,
-          attributes: ["id", "balance"],
-        },
       ],
       order: [["created_at", "DESC"]],
     });
@@ -48,10 +44,6 @@ class TransactionService {
         {
           model: Category,
           attributes: ["name"],
-        },
-        {
-          model: Account,
-          attributes: ["id", "balance"],
         },
       ],
       order: [["created_at", "DESC"]],
@@ -97,10 +89,6 @@ class TransactionService {
         {
           model: Category,
           attributes: ["name"],
-        },
-        {
-          model: Account,
-          attributes: ["id", "balance"],
         },
       ],
     });
@@ -167,10 +155,6 @@ class TransactionService {
         {
           model: Category,
           attributes: ["name"],
-        },
-        {
-          model: Account,
-          attributes: ["id", "balance"],
         },
       ],
     });
