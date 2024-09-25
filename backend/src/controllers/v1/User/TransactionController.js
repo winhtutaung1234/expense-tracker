@@ -50,8 +50,6 @@ module.exports = {
     const { id } = req.params;
     const { user } = req;
 
-    console.log("destory transaction: ", user.id);
-
     await TransactionService.deleteTransaction(id, user.id);
     return res.sendStatus(204);
   }),

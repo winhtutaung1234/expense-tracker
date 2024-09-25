@@ -2,6 +2,7 @@ const { Transaction } = require("../../models");
 const { Currency } = require("../../models");
 const { Category } = require("../../models");
 const { Account } = require("../../models");
+const { User } = require("../../models");
 
 const errResponse = require("../../utils/error/errResponse");
 const currencyConverter = require("../../utils/currency/currencyConverter");
@@ -9,6 +10,9 @@ const {
   addTransactionToAccountBalance,
   updateTransactionToAccountBalance,
 } = require("../../utils/account/updateAccountBalance");
+const {
+  getFormattedBalance,
+} = require("../../utils/currency/formattedBalance");
 
 class TransactionService {
   async getAllTransactions(account_id) {
@@ -104,29 +108,40 @@ class TransactionService {
     return transaction;
   }
 
-  async updateTransaction(id, data, account_id) {
+  async updateTransaction(id, data, userId) {
     const { category_id, transaction_type, amount, currency_id, description } =
       data;
 
-    const transaction = await Transaction.findByPk(id);
+    const transaction = await Transaction.findByPk(id, {
+      include: [{ model: Account, attributes: ["id", "user_id"] }],
+    });
 
     if (!transaction) {
-      throw errResponse("Transaction not found", 404);
+      throw errResponse("Transaction not found", 404, "transaction");
     }
 
-    if (transaction.account_id !== Number(account_id)) {
-      throw errResponse("Account doesn't match to update the transaction", 400);
+    const user = await User.findByPk(userId);
+    if (!user) {
+      throw errResponse("User not found", 404, "transaction");
+    }
+
+    if (transaction.Account.user_id !== userId) {
+      throw errResponse(
+        "Unauthorized to update transaction",
+        403,
+        "transaction"
+      );
     }
 
     // convert appropiate currency based on account's currecny
     const { exchange_rate, convertedAmount } = await currencyConverter(
-      account_id,
+      transaction.Account.id,
       currency_id,
       amount
     );
 
     await updateTransactionToAccountBalance({
-      account_id,
+      account_id: transaction.Account.id,
       convertedAmount,
       transaction_type,
       transaction_id: transaction.id,
@@ -134,7 +149,7 @@ class TransactionService {
 
     // Create the transaction with the converted amount and exchange rate
     await transaction.update({
-      account_id,
+      account_id: transaction.Account.id,
       category_id,
       transaction_type,
       amount: convertedAmount,
@@ -163,16 +178,41 @@ class TransactionService {
     return updatedTransaction;
   }
 
-  async deleteTransaction(id, account_id) {
-    const transaction = await Transaction.findByPk(id);
+  async deleteTransaction(id, userId) {
+    const transaction = await Transaction.findByPk(id, {
+      include: [{ model: Account, attributes: ["id", "user_id", "balance"] }],
+    });
 
     if (!transaction) {
       throw errResponse("Transaction not found", 404);
     }
 
-    if (transaction.account_id !== account_id) {
-      throw errResponse("Account doesn't match to delete the transaction", 403);
+    const user = await User.findByPk(userId);
+    if (!user) {
+      throw errResponse("User not found", 404, "transaction");
     }
+
+    if (transaction.Account.user_id !== userId) {
+      throw errResponse(
+        "Unauthorized to delete transaction",
+        403,
+        "transaction"
+      );
+    }
+
+    if (transaction.transaction_type === "income") {
+      transaction.Account.balance -= transaction.amount;
+    } else {
+      const transactionAmount = await getFormattedBalance(transaction.amount);
+      let accountBalance = await getFormattedBalance(
+        transaction.Account.balance
+      );
+
+      accountBalance += transactionAmount;
+      transaction.Account.balance = accountBalance;
+    }
+
+    await transaction.Account.save();
 
     await transaction.destroy();
     return true;
