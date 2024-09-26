@@ -21,7 +21,6 @@ api.interceptors.response.use(
   },
   async (error) => {
     const originalRequest = error.config;
-    console.log(originalRequest);
 
     if (
       error.response?.status === 401 &&
@@ -36,7 +35,6 @@ api.interceptors.response.use(
 
         return api(originalRequest);
       } catch (refreshError) {
-        console.error("Token refresh failed:", refreshError);
 
         Storage.clear();
         throw refreshError;
@@ -48,7 +46,6 @@ api.interceptors.response.use(
       originalRequest._retry &&
       originalRequest.url === "/refresh-token"
     ) {
-      console.log("Refresh token request failed, logging out...");
       Storage.clear(); // Clear any stored tokens and user data
       window.location.href = "/login"; // Redirect the user to the login page
       throw error; // Stop the execution and throw the error to prevent further processing

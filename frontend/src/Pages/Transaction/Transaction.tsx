@@ -9,7 +9,7 @@ import { Column, Table } from '../../Components/Table';
 import { TransactionForm, Transaction as TransactionType } from '../../Types/Transaction';
 import Category from '../../Services/Category';
 import { Category as CategoryType } from '../../Types/Category';
-import { NavLink, useLocation } from 'react-router-dom';
+import { NavLink, useLocation, useOutletContext } from 'react-router-dom';
 import FormatDecimal from '../../Utils/FormatDecimal';
 import formatCurrency from '../../Utils/FormatCurrency';
 import { formatDateWithSuffix } from '../../Utils/FormatDate';
@@ -19,6 +19,10 @@ import formatDecimal from '../../Utils/FormatDecimal';
 import getError from '../../Utils/getError';
 import Error from '../../Components/Errors';
 import Validator from '../../Validator';
+import LineChart from '../../Components/Chart/LineChart';
+import Logo from '../../Assets/Logo';
+import { test } from './test';
+
 
 const Transaction = () => {
 
@@ -37,6 +41,7 @@ const Transaction = () => {
         transaction_type: "income"
     });
 
+    const { showNav } = useOutletContext<{ showNav: Boolean }>();
 
     //Error
     const [transactionFormDataError, setTransactionFormDataError] = useState<Partial<Record<keyof TransactionForm, string[]>>>();
@@ -128,6 +133,8 @@ const Transaction = () => {
             [e.target.name]: e.target.value
         }))
     }
+
+    test(selectedAccountTransactions);
 
     useEffect(() => {
         if (transactionFormData.account_id) {
@@ -315,6 +322,13 @@ const Transaction = () => {
             {showWarningModal && <Modal onConfirm={confirmDelete} onClose={rejectDelete} type='warning' confirmButtonText='Delete' text='Are you sure you want to delete this Transaction?' />}
             <div className='flex gap-10 dark:text-white max-lg:flex-col flex-wrap'>
                 <form className='bg-gray border border-light-yellow border-opacity-50 px-6 pt-4 pb-6 flex flex-col gap-5 flex-[0.3] max-lg:w-1/2 mx-auto max-md:w-[65%] max-sm:w-[90%] rounded-xl h-full sticky top-40 max-h-[500px]'>
+                    <div className={`absolute left-1/2 -translate-x-1/2 -top-20 flex w-full justify-center ${showNav ? "animate-closeNav" : "animate-openNav"}`}>
+                        <img width={70} src={Logo} />
+                        <div className='flex flex-col items-center'>
+                            <p className='font-alexbrush text-4xl dark:text-white'>Budget Flow</p>
+                            <p className='font-arsenal text-[10px] dark:text-white'>Free yourself Financially</p>
+                        </div>
+                    </div>
                     <div className='flex flex-col gap-5 overflow-y-scroll pr-2 scrollBar'>
                         <div className='flex flex-col gap-2'>
                             <p className='font-inter text-[18px]'>Transaction</p>
@@ -449,9 +463,10 @@ const Transaction = () => {
                     <div className='flex justify-between'>
                         <div className='flex flex-col'>
                             <p className='text-[18px] font-inter'>Your Balance</p>
-                            <p className='text-[32px] font-inter font-bold'>
+                            <div className='text-[32px] font-inter font-bold flex items-center gap-2'>
+                                <img src="/src/Assets/Flag/5546712_myanmar_asia_circle_country_flag_icon.png" className='w-10' />
                                 {selectedAccountBalance && selectedAccountBalance}
-                            </p>
+                            </div>
                         </div>
                         <div className='flex flex-col items-end gap-2'>
                             <p className='text-[18px] font-inter'>Selected Account</p>
@@ -465,6 +480,9 @@ const Transaction = () => {
                                 ))}
                             </select>
                         </div>
+                    </div>
+                    <div className='mt-3 mb-8'>
+                        <LineChart />
                     </div>
                     <p className='font-inter text-[32px] text-light-yellow mb-6'>Transactions History</p>
                     <Table<TransactionType>

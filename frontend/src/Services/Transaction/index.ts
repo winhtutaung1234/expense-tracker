@@ -41,7 +41,6 @@ class Transaction {
     static async deleteTransaction(id: string | number) {
         try {
             const response = await api.delete(`/transactions/${id}`);
-            console.log(response.data);
             return response.data;
         } catch (error) {
             throw error;

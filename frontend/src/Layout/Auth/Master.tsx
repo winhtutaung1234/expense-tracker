@@ -65,9 +65,9 @@ const Master = () => {
                 )
             }
 
-            <div className={`xl:px-36 px-4 ${user && user.email_verified_at && "mt-40"}`}>
+            <div className={`xl:px-36 px-4 pb-20 ${user && user.email_verified_at && "mt-40"}`}>
                 {user && !loading && (
-                    <Outlet />
+                    <Outlet context={{showNav}} />
                 )}
             </div>
         </>

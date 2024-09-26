@@ -45,7 +45,7 @@ class Auth {
   ): Promise<RegisterResponse> {
     try {
       const response = await api.post<RegisterResponse>(
-        "/users",
+        "/register",
         registerFormData
       );
       return response.data;
@@ -100,7 +100,6 @@ class Auth {
       Storage.setItem("Access Token", accessToken);
       return response.data;
     } catch (error) {
-      console.error("Failed to refresh token:", error);
       throw error;
     }
   }
