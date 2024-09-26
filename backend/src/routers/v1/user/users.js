@@ -14,12 +14,12 @@ const auth = require("../../../middlewares/AuthMiddleware/auth");
 const router = express.Router();
 
 router
+  .get("/verify", auth, UserController.verify)
   .get("/users", UserController.findAll)
   .get("/users/:id", UserController.show)
-  .get("/verify", auth, UserController.verify)
-  .post("/register", reigsterMiddleware, UserController.register)
   .post("/login", loginMiddleware, UserController.login)
-  .post("/refresh-token", UserController.refresh);
+  .post("/refresh-token", UserController.refresh)
+  .post("/register", reigsterMiddleware, UserController.register);
 
 // logout -> needs access token
 router.post("/logout", auth, UserController.logout);

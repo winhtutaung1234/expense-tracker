@@ -35,7 +35,7 @@ class UserService {
       role_id: role_id ? role_id : 1,
       name,
       email,
-      password: await bcrypt(password, 10),
+      password: await bcrypt.hash(password, 10),
     });
 
     return user;
