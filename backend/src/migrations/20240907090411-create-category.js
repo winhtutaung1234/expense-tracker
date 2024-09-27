@@ -16,6 +16,14 @@ module.exports = {
       description: {
         type: Sequelize.TEXT,
       },
+      text_color: {
+        allowNull: false,
+        type: Sequelize.STRING,
+      },
+      background_color: {
+        allowNull: false,
+        type: Sequelize.STRING,
+      },
       created_at: {
         allowNull: false,
         type: Sequelize.DATE,

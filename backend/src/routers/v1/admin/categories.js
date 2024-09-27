@@ -13,6 +13,6 @@ router.post("/", createCategoryMiddleware, CategoryController.create);
 
 router.put("/:id", updateCategoryMiddleware, CategoryController.update);
 
-router.delete("/id", deleteCategoryMiddleware, CategoryController.destroy);
+router.delete("/:id", deleteCategoryMiddleware, CategoryController.destroy);
 
 module.exports = { categoriesRouter: router };

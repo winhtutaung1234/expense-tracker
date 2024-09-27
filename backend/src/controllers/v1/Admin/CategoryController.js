@@ -1,41 +1,37 @@
 const asyncHandler = require("express-async-handler");
 const { Category } = require("../../../models");
+const CategoryService = require("../../../services/v1/CategoryService");
+const errResponse = require("../../../utils/error/errResponse");
 
 module.exports = {
   findAll: asyncHandler(async (req, res) => {
-    const categories = await Category.findAll();
+    const categories = await CategoryService.getAllCategories();
 
     return res.json(categories);
   }),
 
   create: asyncHandler(async (req, res) => {
-    const { name, description } = req.body;
-
-    const category = await Category.create({ name, description });
+    const category = await CategoryService.createCategory(req.body);
     return res.status(201).json(category);
   }),
 
   update: asyncHandler(async (req, res) => {
-    const { id } = req.params;
-    const { name, description } = req.body;
+    const result = await CategoryService.updateCategory(
+      req.params.id,
+      req.body
+    );
 
-    const category = await Category.findByPk(id);
-
-    if (!category) return res.status(404).json({ msg: "Category not found" });
-
-    await category.update({ name, description });
-
-    return res.json({ msg: "Updated Successfully" });
+    if (!result) {
+      throw errResponse("Update failed", 400, "category");
+    } else {
+      return res.json({ msg: "Updated Successfully" });
+    }
   }),
 
   destroy: asyncHandler(async (req, res) => {
     const { id } = req.params;
 
-    const category = await Category.findByPk(id);
-
-    if (!category) return res.status(404).json({ msg: "Category not found" });
-
-    await category.destroy();
+    await CategoryService.deleteCategory(id);
     return res.json({ msg: "Deleted successfully" });
   }),
 };
