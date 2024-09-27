@@ -1,17 +1,14 @@
 const { Transaction } = require("../../models");
-const { Currency } = require("../../models");
-const { Category } = require("../../models");
-const { Account } = require("../../models");
+const { Currency, Category, Account, Transfer } = require("../../models");
 
 const errResponse = require("../../utils/error/errResponse");
 const currencyConverter = require("../../utils/currency/currencyConverter");
-const {
-  addTransactionToAccountBalance,
-  updateTransactionToAccountBalance,
-} = require("../../utils/account/updateAccountBalance");
+
 const {
   getFormattedBalance,
 } = require("../../utils/currency/formattedBalance");
+
+const AccountBalanceService = require("./AccountBalanceService");
 
 class TransactionService {
   async getAllTransactions(account_id) {
@@ -25,6 +22,22 @@ class TransactionService {
         {
           model: Category,
           attributes: ["name"],
+        },
+        {
+          model: Transfer,
+          attributes: ["from_account_id", "to_account_id"],
+          include: [
+            {
+              model: Account,
+              as: "fromAccount",
+              attributes: ["name"],
+            },
+            {
+              model: Account,
+              as: "toAccount",
+              attributes: ["name"],
+            },
+          ],
         },
       ],
       order: [["created_at", "DESC"]],
@@ -48,6 +61,22 @@ class TransactionService {
           model: Account,
           attributes: ["id", "balance"],
         },
+        {
+          model: Transfer,
+          attributes: ["from_account_id", "to_account_id"],
+          include: [
+            {
+              model: Account,
+              as: "fromAccount",
+              attributes: ["name"],
+            },
+            {
+              model: Account,
+              as: "toAccount",
+              attributes: ["name"],
+            },
+          ],
+        },
       ],
       order: [["created_at", "DESC"]],
     });
@@ -55,16 +84,24 @@ class TransactionService {
     return transaction;
   }
 
-  async createTransaction(account_id, data) {
-    const { category_id, transaction_type, amount, currency_id, description } =
-      data;
+  async createTransaction(transactionDatas) {
+    const {
+      account_id,
+      transfer_account_id,
+      category_id,
+      transaction_type,
+      amount,
+      currency_id,
+      description,
+    } = transactionDatas;
 
     // convert appropiate currency based on account's currecny
     const { exchange_rate, convertedAmount, convertedCurrencyId } =
       await currencyConverter(account_id, currency_id, amount);
 
-    await addTransactionToAccountBalance({
+    await AccountBalanceService.addTransactionToAccountBalance({
       account_id,
+      transfer_account_id,
       convertedAmount,
       transaction_type,
     });
@@ -80,6 +117,12 @@ class TransactionService {
       exchange_rate: exchange_rate,
     });
 
+    await Transfer.create({
+      transaction_id: createdTransaction.id,
+      from_account_id: account_id,
+      to_account_id: transfer_account_id,
+    });
+
     const transaction = await Transaction.findByPk(createdTransaction.id, {
       include: [
         {
@@ -90,6 +133,26 @@ class TransactionService {
           model: Category,
           attributes: ["name"],
         },
+        {
+          model: Transfer,
+          attributes: ["from_account_id", "to_account_id"],
+        },
+        {
+          model: Transfer,
+          attributes: ["from_account_id", "to_account_id"],
+          include: [
+            {
+              model: Account,
+              as: "fromAccount",
+              attributes: ["name"],
+            },
+            {
+              model: Account,
+              as: "toAccount",
+              attributes: ["name"],
+            },
+          ],
+        },
       ],
     });
 
@@ -97,8 +160,15 @@ class TransactionService {
   }
 
   async updateTransaction(id, data, userId) {
-    const { category_id, transaction_type, amount, currency_id, description } =
-      data;
+    const {
+      account_id,
+      transfer_account_id,
+      category_id,
+      transaction_type,
+      amount,
+      currency_id,
+      description,
+    } = data;
 
     const transaction = await Transaction.findByPk(id, {
       include: [{ model: Account, attributes: ["id", "user_id"] }],
@@ -108,7 +178,10 @@ class TransactionService {
       throw errResponse("Transaction not found", 404);
     }
 
-    if (transaction.Account.user_id !== userId) {
+    if (
+      transaction.Account.id.toString() !== account_id.toString() ||
+      transaction.Account.user_id !== userId
+    ) {
       throw errResponse(
         "Unauthorized to update transaction",
         403,
@@ -120,8 +193,9 @@ class TransactionService {
     const { exchange_rate, convertedAmount, convertedCurrencyId } =
       await currencyConverter(transaction.Account.id, currency_id, amount);
 
-    await updateTransactionToAccountBalance({
-      account_id: transaction.Account.id,
+    await AccountBalanceService.updateTransactionToAccountBalance({
+      account_id,
+      transfer_account_id,
       convertedAmount,
       transaction_type,
       transaction_id: transaction.id,
@@ -129,7 +203,7 @@ class TransactionService {
 
     // Create the transaction with the converted amount and exchange rate
     await transaction.update({
-      account_id: transaction.Account.id,
+      account_id,
       category_id,
       transaction_type,
       amount: convertedAmount,
@@ -147,6 +221,22 @@ class TransactionService {
         {
           model: Category,
           attributes: ["name"],
+        },
+        {
+          model: Transfer,
+          attributes: ["from_account_id", "to_account_id"],
+          include: [
+            {
+              model: Account,
+              as: "fromAccount",
+              attributes: ["name"],
+            },
+            {
+              model: Account,
+              as: "toAccount",
+              attributes: ["name"],
+            },
+          ],
         },
       ],
     });

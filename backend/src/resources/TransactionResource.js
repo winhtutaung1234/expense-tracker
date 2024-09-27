@@ -26,6 +26,12 @@ class TransactionResource extends Resource {
             name: this.Category.name,
           }
         : null,
+      transfer: this.Transfer
+        ? {
+            from: this.Transfer.fromAccount.name,
+            to: this.Transfer.toAccount.name,
+          }
+        : null,
     };
   }
 }

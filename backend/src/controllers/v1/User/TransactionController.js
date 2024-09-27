@@ -23,12 +23,7 @@ module.exports = {
   }),
 
   create: asyncHandler(async (req, res) => {
-    const { account_id } = req.body;
-
-    const transaction = await TransactionService.createTransaction(
-      account_id,
-      req.body
-    );
+    const transaction = await TransactionService.createTransaction(req.body);
 
     return res.status(201).json(new TransactionResource(transaction).exec());
   }),

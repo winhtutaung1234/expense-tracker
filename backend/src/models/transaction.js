@@ -23,6 +23,11 @@ module.exports = (sequelize, DataTypes) => {
         foreignKey: "currency_id",
         onDelete: "CASCADE",
       });
+
+      Transaction.hasOne(models.Transfer, {
+        foreignKey: "transaction_id",
+        onDelete: "CASCADE",
+      });
     }
   }
   Transaction.init(
