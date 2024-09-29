@@ -24,6 +24,8 @@ class TransactionResource extends Resource {
       category: this.Category
         ? {
           name: this.Category.name,
+          text_color: this.Category.text_color,
+          background_color: this.Category.background_color
         }
         : null,
       transfer: this.Transfer
