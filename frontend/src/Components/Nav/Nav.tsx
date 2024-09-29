@@ -9,7 +9,7 @@ import { faArrowRightArrowLeft, faCoins } from '@fortawesome/free-solid-svg-icon
 
 const Nav = (props: NavProps) => {
     const { user, showNav } = props;
-    const [dropdownAnimation, setDropdownAnimation] = useState<'open' | 'close' | null>(null);
+    const [dropdownAnimation, setDropdownAnimation] = useState<Boolean>(false);
     const [showLogoutModal, setShowLogoutModal] = useState(false);
     const navigate = useNavigate();
     const dropdownRef = useRef<HTMLDivElement>(null);
@@ -17,7 +17,7 @@ const Nav = (props: NavProps) => {
 
     useEffect(() => {
         if (dropdownAnimation) {
-            setDropdownAnimation('close');
+            setDropdownAnimation(false);
         }
     }, [pathname])
 
@@ -26,8 +26,8 @@ const Nav = (props: NavProps) => {
     };
 
     const handleScroll = () => {
-        if (dropdownAnimation === "open") {
-            setDropdownAnimation('close');
+        if (dropdownAnimation) {
+            setDropdownAnimation(false);
         }
     };
 
@@ -37,7 +37,7 @@ const Nav = (props: NavProps) => {
 
     const toggleDropDown = () => {
         setDropdownAnimation((prevData) =>
-            prevData ? (prevData === 'open' ? 'close' : 'open') : 'open'
+            prevData ? (prevData ? false : true) : true
         );
     };
 
@@ -55,9 +55,9 @@ const Nav = (props: NavProps) => {
             if (
                 dropdownRef.current &&
                 !dropdownRef.current.contains(event.target as Node) &&
-                dropdownAnimation === 'open'
+                dropdownAnimation
             ) {
-                setDropdownAnimation('close');
+                setDropdownAnimation(false);
             }
         };
 
@@ -97,9 +97,7 @@ const Nav = (props: NavProps) => {
                         )}
                         <div
                             className={`absolute dark:bg-[#2f2f2f] rounded-sm border border-dark-yellow py-4 px-12 top-[125%] flex-col justify-center items-center gap-4 -translate-y-2 opacity-0
-                            ${dropdownAnimation === 'open' ? "animate-openDropDown opacity-100" : ""}
-                            ${dropdownAnimation === 'close' ? "animate-closeDropDown opacity-0" : ""}
-                            ${dropdownAnimation ? "flex" : "hidden"}
+                                ${dropdownAnimation ? "animate-openDropDown" : "hidden"}
                             `}
                             style={{ transition: 'opacity 0.25s ease-in-out' }}
                         >

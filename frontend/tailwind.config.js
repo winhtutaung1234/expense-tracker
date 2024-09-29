@@ -60,7 +60,7 @@ export default {
         },
         openDropDown: {
           '0%': { transform: "translateY(-8px)", opacity: 0, display: "none" },
-          '100%': { transform: "translateY(0)", opacity: 1 }
+          '100%': { transform: "translateY(0)", opacity: 1, display: "flex" }
         },
         closeDropDown: {
           '0%': { transform: "translateY(0)", opacity: 1 },

@@ -9,6 +9,7 @@ import {
     Legend
 } from "chart.js"
 import { Line } from "react-chartjs-2"
+import { ChartProps } from "../../Types/Props/LineChart";
 
 ChartJS.register(
     CategoryScale,
@@ -20,37 +21,16 @@ ChartJS.register(
     Legend
 );
 
-const LineChart = () => {
+const LineChart = (LineChartProps: ChartProps) => {
 
-    const options = {};
+    const { options, data } = LineChartProps;
 
-    const data = {
-        labels: [
-            "Monday",
-            "Tuesday",
-            "Wednesday",
-            "Thursday",
-            "Friday",
-            "Saturday",
-            "Sunday"
-        ],
-        datasets: [
-            {
-                label: "Income",
-                data: [3000, 5000, 4000, 3000, 5500, 8000, 4500],
-                borderColor: "#05CE73"
-            },
-            {
-                label: "Expense",
-                data: [1000, 4000, 3500, 4500, 1500, 6000, 3000],
-                borderColor: "#FF5649"
-            },
-        ]
-    };
+    if (data) {
+        return (
+            <Line options={options} data={data} />
+        )
+    }
 
-    return (
-        <Line options={options} data={data} />
-    )
 }
 
 export default LineChart

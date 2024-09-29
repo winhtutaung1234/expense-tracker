@@ -21,7 +21,8 @@ import Error from '../../Components/Errors';
 import Validator from '../../Validator';
 import LineChart from '../../Components/Chart/LineChart';
 import Logo from '../../Assets/Logo';
-import { test } from './test';
+import { getChartData } from './getTransactionChartData';
+import { Data } from '../../Types/Props/LineChart';
 
 
 const Transaction = () => {
@@ -59,6 +60,13 @@ const Transaction = () => {
     //Selected Account Transactions + Account Balance
     const [selectedAccountTransactions, setSelectedAccountTransactions] = useState<TransactionType[]>([]);
     const [selectedAccountBalance, setSelectedAccountBalance] = useState<string | null>(null);
+
+    //Chart
+    const [selectedChartFilter, setSelectedChartFilter] = useState("this_week");
+    const [data, setData] = useState<Data>({
+        labels: [],
+        datasets: [],
+    });
 
     //Fetch Necessary Data
     useEffect(() => {
@@ -134,8 +142,6 @@ const Transaction = () => {
         }))
     }
 
-    test(selectedAccountTransactions);
-
     useEffect(() => {
         if (transactionFormData.account_id) {
             AccountService.getAccount(transactionFormData.account_id)
@@ -167,6 +173,17 @@ const Transaction = () => {
             setSelectedAccountBalance(`${accountBalance} ${selectedAccount.currency.code}`)
         }
     }, [allAccounts])
+
+    useEffect(() => {
+        let chartData = getChartData(selectedAccountTransactions, selectedChartFilter);
+        setData(chartData);
+    }, [selectedAccountTransactions, selectedChartFilter])
+
+    /* Start of Chart Filter */
+    const handleChartFilterChange = (e: ChangeEvent<HTMLSelectElement>) => {
+        setSelectedChartFilter(e.target.value);
+    }
+    /* End of Chart Filter */
 
     /* Start of Create Transaction */
     const handleAddTransactionClick = (e: MouseEvent<HTMLButtonElement>) => {
@@ -460,7 +477,7 @@ const Transaction = () => {
                     )}
                 </form>
                 <div className='flex-[0.7] flex flex-col'>
-                    <div className='flex justify-between'>
+                    <div className={`flex justify-between py-2 px-4 sticky transition-all ${showNav ? "top-40" : "top-10"} shadow-md rounded-xl`} style={{ background: "rgba(255,255,255,0.1)", backdropFilter: "blur(5px)", border: "1px solid rgba(253,228,96,0.5)", borderRight: "1px solid rgba(253,228,96,0.2)", borderTop: "1px solid rgba(253,228,96,0.2)" }}>
                         <div className='flex flex-col'>
                             <p className='text-[18px] font-inter'>Your Balance</p>
                             <div className='text-[32px] font-inter font-bold flex items-center gap-2'>
@@ -481,10 +498,26 @@ const Transaction = () => {
                             </select>
                         </div>
                     </div>
-                    <div className='mt-3 mb-8'>
-                        <LineChart />
+                    <div className='mt-5 mb-8'>
+                        <div className='flex justify-between items-center mb-2'>
+                            <p className='font-inter text-[32px] text-light-yellow font-light'>Transaction Chart</p>
+                            <select
+                                onChange={handleChartFilterChange}
+                                name='chart_filter'
+                                className="bg-light-yellow text-black py-1 px-2 rounded-md">
+                                <option value="this_week">This Week</option>
+                                <option value="last_week">Last Week</option>
+                                <option value="last_2_weeks">Last 2 Weeks</option>
+                                <option value="last_month">Last Month</option>
+                                <option value="last_3_months">Last 3 Months</option>
+                                <option value="last_6_months">Last 6 Months</option>
+                                <option value="this_year">This Year</option>
+                            </select>
+                        </div>
+                 
+                        <LineChart options={{}} data={data} />
                     </div>
-                    <p className='font-inter text-[32px] text-light-yellow mb-6'>Transactions History</p>
+                    <p className='font-inter text-[32px] text-light-yellow mt-8 mb-6 font-light'>Transactions History</p>
                     <Table<TransactionType>
                         dataSource={selectedAccountTransactions}
                     >
