@@ -514,7 +514,9 @@ const Transaction = () => {
                                 <option value="this_year">This Year</option>
                             </select>
                         </div>
-                 
+                        <div>
+
+                        </div>
                         <LineChart options={{}} data={data} />
                     </div>
                     <p className='font-inter text-[32px] text-light-yellow mt-8 mb-6 font-light'>Transactions History</p>
@@ -543,9 +545,9 @@ const Transaction = () => {
                         <Column
                             dataIndex="category"
                             title="Category"
-                            render={(value: TransactionType["category"]) => {
-                                return value.name;
-                            }}
+                            render={(value: TransactionType["category"]) => (
+                                <p className='text-center rounded-md inline-block py-1 px-2 shadow-md text-[14px]' style={{ color: value.text_color, background: value.background_color }}>{value.name}</p>
+                            )}
                         />
                         <Column
                             title='Date'
