@@ -15,22 +15,22 @@ class TransactionResource extends Resource {
       updated_at: this.updated_at,
       currency: this.Currency
         ? {
-            code: this.Currency.code,
-            symbol: this.Currency.symbol,
-            symbol_position: this.Currency.symbol_position,
-            decimal_places: this.Currency.decimal_places,
-          }
+          code: this.Currency.code,
+          symbol: this.Currency.symbol,
+          symbol_position: this.Currency.symbol_position,
+          decimal_places: this.Currency.decimal_places,
+        }
         : null,
       category: this.Category
         ? {
-            name: this.Category.name,
-          }
+          name: this.Category.name,
+        }
         : null,
       transfer: this.Transfer
         ? {
-            from: this.Transfer.fromAccount.name,
-            to: this.Transfer.toAccount.name,
-          }
+          from: this.Transfer.fromAccount?.name,
+          to: this.Transfer.toAccount?.name,
+        }
         : null,
     };
   }
