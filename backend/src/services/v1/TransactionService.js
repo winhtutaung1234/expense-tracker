@@ -55,7 +55,7 @@ class TransactionService {
         },
         {
           model: Category,
-          attributes: ["name"],
+          attributes: ["name", "text_color", "background_color"],
         },
         {
           model: Account,
@@ -131,7 +131,7 @@ class TransactionService {
         },
         {
           model: Category,
-          attributes: ["name"],
+          attributes: ["name", "text_color", "background_color"],
         },
         {
           model: Transfer,
@@ -220,7 +220,7 @@ class TransactionService {
         },
         {
           model: Category,
-          attributes: ["name"],
+          attributes: ["name", "text_color", "background_color"],
         },
         {
           model: Transfer,
