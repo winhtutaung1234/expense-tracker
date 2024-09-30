@@ -25,7 +25,11 @@ module.exports = {
         allowNull: false,
         type: Sequelize.DECIMAL(10, 2),
       },
-      currency_id: {
+      from_currency_id: {
+        allowNull: false,
+        type: Sequelize.BIGINT.UNSIGNED,
+      },
+      to_currency_id: {
         allowNull: false,
         type: Sequelize.BIGINT.UNSIGNED,
       },

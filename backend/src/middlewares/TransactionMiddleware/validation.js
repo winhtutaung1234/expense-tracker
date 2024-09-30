@@ -29,7 +29,11 @@ const transactionValidation = [
       'Transaction type must be one of "income", "expense", or "transfer"'
     ),
 
-  body("currency_id")
+  body("from_currency_id")
+    .isInt({ min: 1 })
+    .withMessage("Currency ID must be a positive integer"),
+
+  body("to_currency_id")
     .isInt({ min: 1 })
     .withMessage("Currency ID must be a positive integer"),
 
