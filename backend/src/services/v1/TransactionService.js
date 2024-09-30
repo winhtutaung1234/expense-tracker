@@ -92,6 +92,7 @@ class TransactionService {
       transaction_type,
       amount,
       currency_id,
+      date,
       description,
     } = transactionDatas;
 
@@ -113,6 +114,7 @@ class TransactionService {
       transaction_type,
       amount: convertedAmount,
       currency_id: convertedCurrencyId,
+      date: date ? new Date(date) : new Date(),
       description,
       exchange_rate: exchange_rate,
     });

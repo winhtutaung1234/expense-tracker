@@ -9,30 +9,31 @@ class TransactionResource extends Resource {
       transaction_type: this.transaction_type,
       amount: this.amount,
       currency_id: this.currency_id,
+      date: this.date,
       description: this.description,
       exchange_rate: this.exchange_rate,
       created_at: this.created_at,
       updated_at: this.updated_at,
       currency: this.Currency
         ? {
-          code: this.Currency.code,
-          symbol: this.Currency.symbol,
-          symbol_position: this.Currency.symbol_position,
-          decimal_places: this.Currency.decimal_places,
-        }
+            code: this.Currency.code,
+            symbol: this.Currency.symbol,
+            symbol_position: this.Currency.symbol_position,
+            decimal_places: this.Currency.decimal_places,
+          }
         : null,
       category: this.Category
         ? {
-          name: this.Category.name,
-          text_color: this.Category.text_color,
-          background_color: this.Category.background_color
-        }
+            name: this.Category.name,
+            text_color: this.Category.text_color,
+            background_color: this.Category.background_color,
+          }
         : null,
       transfer: this.Transfer
         ? {
-          from: this.Transfer.fromAccount?.name,
-          to: this.Transfer.toAccount?.name,
-        }
+            from: this.Transfer.fromAccount?.name,
+            to: this.Transfer.toAccount?.name,
+          }
         : null,
     };
   }

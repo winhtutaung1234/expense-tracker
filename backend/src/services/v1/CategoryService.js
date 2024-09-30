@@ -3,7 +3,7 @@ const errResponse = require("../../utils/error/errResponse");
 
 class CategoryService {
   async getAllCategories() {
-    const categories = await Category.findAll();
+    const categories = await Category.findAll({ order: [["name", "Desc"]] });
     return categories;
   }
 

@@ -37,6 +37,7 @@ module.exports = (sequelize, DataTypes) => {
       transaction_type: DataTypes.ENUM("income", "expense", "transfer"),
       amount: DataTypes.DECIMAL,
       currency_id: DataTypes.BIGINT.UNSIGNED,
+      date: DataTypes.DATE,
       description: DataTypes.TEXT,
       exchange_rate: DataTypes.DECIMAL,
     },

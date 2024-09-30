@@ -46,6 +46,8 @@ const transactionValidation = [
       }
     }),
 
+  body("date").optional().isDate().withMessage("Date must be a date"),
+
   body("description").optional().isString(),
 
   body("exchange_rate")
