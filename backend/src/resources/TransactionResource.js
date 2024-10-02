@@ -11,7 +11,6 @@ class TransactionResource extends Resource {
       currency_id: this.currency_id,
       date: this.date,
       description: this.description,
-      exchange_rate: this.exchange_rate,
       created_at: this.created_at,
       updated_at: this.updated_at,
       currency: this.Currency
@@ -33,6 +32,14 @@ class TransactionResource extends Resource {
         ? {
             from: this.Transfer.fromAccount?.name,
             to: this.Transfer.toAccount?.name,
+          }
+        : null,
+      conversion: this.TransactionConversion
+        ? {
+            converted_amount: this.TransactionConversion.converted_amount,
+            converted_currency_id:
+              this.TransactionConversion.converted_currency_id,
+            exchange_rate: this.TransactionConversion.exchange_rate,
           }
         : null,
     };

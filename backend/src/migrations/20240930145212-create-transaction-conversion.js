@@ -2,40 +2,24 @@
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up(queryInterface, Sequelize) {
-    await queryInterface.createTable("transactions", {
+    await queryInterface.createTable("transaction_conversions", {
       id: {
         allowNull: false,
         autoIncrement: true,
         primaryKey: true,
-        type: Sequelize.INTEGER,
-      },
-      account_id: {
-        allowNull: false,
         type: Sequelize.BIGINT.UNSIGNED,
       },
-      category_id: {
-        allowNull: false,
+      transaction_id: {
         type: Sequelize.BIGINT.UNSIGNED,
       },
-      transaction_type: {
-        allowNull: false,
-        type: Sequelize.ENUM("income", "expense", "transfer"),
-      },
-      amount: {
-        allowNull: false,
+      converted_amount: {
         type: Sequelize.DECIMAL(10, 2),
       },
-      currency_id: {
-        allowNull: false,
+      converted_currency_id: {
         type: Sequelize.BIGINT.UNSIGNED,
       },
-      date: {
-        allowNull: false,
-        type: Sequelize.DATE,
-      },
-      description: {
-        allowNull: false,
-        type: Sequelize.TEXT,
+      exchange_rate: {
+        type: Sequelize.DECIMAL(15, 5),
       },
       created_at: {
         allowNull: false,
@@ -48,6 +32,6 @@ module.exports = {
     });
   },
   async down(queryInterface, Sequelize) {
-    await queryInterface.dropTable("transactions");
+    await queryInterface.dropTable("transaction_conversions");
   },
 };

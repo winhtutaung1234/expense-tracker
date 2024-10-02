@@ -28,6 +28,11 @@ module.exports = (sequelize, DataTypes) => {
         foreignKey: "transaction_id",
         onDelete: "CASCADE",
       });
+
+      Transaction.hasOne(models.TransactionConversion, {
+        foreignKey: "transaction_id",
+        onDelete: "CASCADE",
+      });
     }
   }
 
@@ -38,11 +43,8 @@ module.exports = (sequelize, DataTypes) => {
       transaction_type: DataTypes.ENUM("income", "expense", "transfer"),
       amount: DataTypes.DECIMAL,
       currency_id: DataTypes.BIGINT.UNSIGNED,
-      // from_currency_id: DataTypes.BIGINT.UNSIGNED,
-      // to_currency_id: DataTypes.BIGINT.UNSIGNED,
       date: DataTypes.DATE,
       description: DataTypes.TEXT,
-      exchange_rate: DataTypes.DECIMAL,
     },
     {
       sequelize,

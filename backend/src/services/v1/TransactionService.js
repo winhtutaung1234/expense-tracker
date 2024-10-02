@@ -1,5 +1,11 @@
-const { Transaction } = require("../../models");
-const { Currency, Category, Account, Transfer } = require("../../models");
+const {
+  Currency,
+  Category,
+  Account,
+  Transfer,
+  Transaction,
+  TransactionConversion,
+} = require("../../models");
 
 const errResponse = require("../../utils/error/errResponse");
 const currencyConverter = require("../../utils/currency/currencyConverter");
@@ -9,78 +15,19 @@ const {
 } = require("../../utils/currency/formattedBalance");
 
 const AccountBalanceService = require("./AccountBalanceService");
+const {
+  getTransactionsWithAssociation,
+  getTransactionWithAssociation,
+} = require("../../utils/transaction/transactionUtils");
 
 class TransactionService {
   async getAllTransactions(account_id) {
-    const transactions = await Transaction.findAll({
-      where: { account_id },
-      include: [
-        {
-          model: Currency,
-          attributes: ["code", "symbol", "symbol_position", "decimal_places"],
-        },
-        {
-          model: Category,
-          attributes: ["name", "text_color", "background_color"],
-        },
-        {
-          model: Transfer,
-          attributes: ["from_account_id", "to_account_id"],
-          include: [
-            {
-              model: Account,
-              as: "fromAccount",
-              attributes: ["name"],
-            },
-            {
-              model: Account,
-              as: "toAccount",
-              attributes: ["name"],
-            },
-          ],
-        },
-      ],
-      order: [["created_at", "DESC"]],
-    });
-
+    const transactions = await getTransactionsWithAssociation(account_id);
     return transactions;
   }
 
   async getTransaction(id) {
-    const transaction = await Transaction.findByPk(id, {
-      include: [
-        {
-          model: Currency,
-          attributes: ["code", "symbol", "symbol_position", "decimal_places"],
-        },
-        {
-          model: Category,
-          attributes: ["name", "text_color", "background_color"],
-        },
-        {
-          model: Account,
-          attributes: ["id", "balance"],
-        },
-        {
-          model: Transfer,
-          attributes: ["from_account_id", "to_account_id"],
-          include: [
-            {
-              model: Account,
-              as: "fromAccount",
-              attributes: ["name"],
-            },
-            {
-              model: Account,
-              as: "toAccount",
-              attributes: ["name"],
-            },
-          ],
-        },
-      ],
-      order: [["created_at", "DESC"]],
-    });
-
+    const transaction = await getTransactionWithAssociation(id);
     return transaction;
   }
 
@@ -96,67 +43,67 @@ class TransactionService {
       description,
     } = transactionDatas;
 
-    // convert appropiate currency based on account's currecny
-    const { exchange_rate, convertedAmount, convertedCurrencyId } =
-      await currencyConverter(account_id, currency_id, amount);
+    const account = await Account.findByPk(account_id, { include: Currency });
+    const currency = await Currency.findByPk(currency_id);
 
-    await AccountBalanceService.addTransactionToAccountBalance({
-      account_id,
-      transfer_account_id,
-      convertedAmount,
-      transaction_type,
-    });
+    if (!account) {
+      throw errResponse("Account not found", 404, "account");
+    } else if (!currency) {
+      throw errResponse("Currency not found", 404, "currency");
+    }
 
     // Create the transaction with the converted amount and exchange rate
     const createdTransaction = await Transaction.create({
       account_id,
       category_id,
       transaction_type,
-      amount: convertedAmount,
-      currency_id: convertedCurrencyId,
+      amount,
+      currency_id,
       date: date ? new Date(date) : new Date(),
       description,
-      exchange_rate: exchange_rate,
     });
 
-    await Transfer.create({
-      transaction_id: createdTransaction.id,
-      from_account_id: account_id,
-      to_account_id: transfer_account_id,
-    });
+    if (account.Currency.id !== currency.id) {
+      const { exchange_rate, convertedAmount, convertedCurrencyId } =
+        await currencyConverter({
+          accountCurrency: account.Currency,
+          transactionCurrency: currency,
+          amount,
+        });
 
-    const transaction = await Transaction.findByPk(createdTransaction.id, {
-      include: [
-        {
-          model: Currency,
-          attributes: ["code", "symbol", "symbol_position", "decimal_places"],
-        },
-        {
-          model: Category,
-          attributes: ["name", "text_color", "background_color"],
-        },
-        {
-          model: Transfer,
-          attributes: ["from_account_id", "to_account_id"],
-        },
-        {
-          model: Transfer,
-          attributes: ["from_account_id", "to_account_id"],
-          include: [
-            {
-              model: Account,
-              as: "fromAccount",
-              attributes: ["name"],
-            },
-            {
-              model: Account,
-              as: "toAccount",
-              attributes: ["name"],
-            },
-          ],
-        },
-      ],
-    });
+      await AccountBalanceService.addTransactionToAccountBalance({
+        account_id,
+        transfer_account_id,
+        convertedAmount,
+        transaction_type,
+      });
+
+      await TransactionConversion.create({
+        transaction_id: createdTransaction.id,
+        converted_amount: convertedAmount,
+        exchange_rate,
+        converted_currency_id: convertedCurrencyId,
+      });
+    } else {
+      await AccountBalanceService.addTransactionToAccountBalance({
+        account_id,
+        transfer_account_id,
+        convertedAmount: amount,
+        transaction_type,
+      });
+    }
+
+    if (transaction_type === "transfer") {
+      await Transfer.create({
+        transaction_id: createdTransaction.id,
+        from_account_id: account_id,
+        to_account_id: transfer_account_id,
+      });
+    }
+
+    const transaction = await getTransactionWithAssociation(
+      createdTransaction.id
+    );
 
     return transaction;
   }
@@ -208,40 +155,17 @@ class TransactionService {
       account_id,
       category_id,
       transaction_type,
-      amount: convertedAmount,
+      amount,
+      converted_amount: convertedAmount,
       currency_id: convertedCurrencyId,
+      date: date ? new Date(date) : new Date(),
       description,
       exchange_rate: exchange_rate,
     });
 
-    const updatedTransaction = await Transaction.findByPk(transaction.id, {
-      include: [
-        {
-          model: Currency,
-          attributes: ["code", "symbol", "symbol_position", "decimal_places"],
-        },
-        {
-          model: Category,
-          attributes: ["name", "text_color", "background_color"],
-        },
-        {
-          model: Transfer,
-          attributes: ["from_account_id", "to_account_id"],
-          include: [
-            {
-              model: Account,
-              as: "fromAccount",
-              attributes: ["name"],
-            },
-            {
-              model: Account,
-              as: "toAccount",
-              attributes: ["name"],
-            },
-          ],
-        },
-      ],
-    });
+    const updatedTransaction = await getTransactionWithAssociation(
+      transaction.id
+    );
 
     return updatedTransaction;
   }
