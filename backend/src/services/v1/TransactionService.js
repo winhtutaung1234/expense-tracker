@@ -18,6 +18,7 @@ const AccountBalanceService = require("./AccountBalanceService");
 const {
   getTransactionsWithAssociation,
   getTransactionWithAssociation,
+  calculateOriginalAccountBalance,
 } = require("../../utils/transaction/transactionUtils");
 
 class TransactionService {
@@ -45,6 +46,7 @@ class TransactionService {
 
     const account = await Account.findByPk(account_id, { include: Currency });
     const currency = await Currency.findByPk(currency_id);
+    let transactionAmount = amount;
 
     if (!account) {
       throw errResponse("Account not found", 404, "account");
@@ -52,7 +54,6 @@ class TransactionService {
       throw errResponse("Currency not found", 404, "currency");
     }
 
-    // Create the transaction with the converted amount and exchange rate
     const createdTransaction = await Transaction.create({
       account_id,
       category_id,
@@ -71,25 +72,15 @@ class TransactionService {
           amount,
         });
 
-      await AccountBalanceService.addTransactionToAccountBalance({
-        account_id,
-        transfer_account_id,
-        convertedAmount,
-        transaction_type,
-      });
+      // change the amount of transaction amount for account balance
+      transactionAmount = convertedAmount;
 
+      // added transaction conversion for different currencies
       await TransactionConversion.create({
         transaction_id: createdTransaction.id,
         converted_amount: convertedAmount,
         exchange_rate,
         converted_currency_id: convertedCurrencyId,
-      });
-    } else {
-      await AccountBalanceService.addTransactionToAccountBalance({
-        account_id,
-        transfer_account_id,
-        convertedAmount: amount,
-        transaction_type,
       });
     }
 
@@ -100,6 +91,14 @@ class TransactionService {
         to_account_id: transfer_account_id,
       });
     }
+
+    // add transaction amount to account blance
+    await AccountBalanceService.addTransactionToAccountBalance({
+      account_id,
+      transfer_account_id,
+      convertedAmount: transactionAmount,
+      transaction_type,
+    });
 
     const transaction = await getTransactionWithAssociation(
       createdTransaction.id
@@ -116,6 +115,7 @@ class TransactionService {
       transaction_type,
       amount,
       currency_id,
+      date,
       description,
     } = data;
 
@@ -138,31 +138,60 @@ class TransactionService {
       );
     }
 
-    // convert appropiate currency based on account's currecny
-    const { exchange_rate, convertedAmount, convertedCurrencyId } =
-      await currencyConverter(transaction.Account.id, currency_id, amount);
+    const account = await Account.findByPk(account_id, { include: Currency });
+    const currency = await Currency.findByPk(currency_id);
 
-    await AccountBalanceService.updateTransactionToAccountBalance({
-      account_id,
-      transfer_account_id,
-      convertedAmount,
-      transaction_type,
-      transaction_id: transaction.id,
-    });
+    if (!account) {
+      throw errResponse("Account not found", 404, "account");
+    } else if (!currency) {
+      throw errResponse("Currency not found", 404, "currency");
+    }
 
-    // Create the transaction with the converted amount and exchange rate
+    if (account.currency_id.toString() !== currency_id.toString()) {
+      const { exchange_rate, convertedAmount, convertedCurrencyId } =
+        await currencyConverter({
+          accountCurrency: account.Currency,
+          transactionCurrency: currency,
+          amount,
+        });
+
+      await AccountBalanceService.updateTransactionToAccountBalance({
+        account_id,
+        transfer_account_id,
+        convertedAmount,
+        transaction_type,
+        transaction_id: transaction.id,
+      });
+
+      await TransactionConversion.update(
+        {
+          converted_amount: convertedAmount,
+          exchange_rate,
+          converted_currency_id: convertedCurrencyId,
+        },
+        {
+          where: { transaction_id: transaction.id },
+        }
+      );
+    } else {
+      await AccountBalanceService.updateTransactionToAccountBalance({
+        account_id,
+        transfer_account_id,
+        convertedAmount: amount,
+        transaction_type,
+        transaction_id: transaction.id,
+      });
+    }
+
     await transaction.update({
       account_id,
       category_id,
       transaction_type,
       amount,
-      converted_amount: convertedAmount,
-      currency_id: convertedCurrencyId,
+      currency_id,
       date: date ? new Date(date) : new Date(),
       description,
-      exchange_rate: exchange_rate,
     });
-
     const updatedTransaction = await getTransactionWithAssociation(
       transaction.id
     );
@@ -170,35 +199,26 @@ class TransactionService {
     return updatedTransaction;
   }
 
-  async deleteTransaction(id, userId) {
+  async deleteTransaction(id) {
     const transaction = await Transaction.findByPk(id, {
-      include: [{ model: Account, attributes: ["id", "user_id", "balance"] }],
+      include: [
+        {
+          model: Account,
+          attributes: ["id", "balance"],
+        },
+        { model: TransactionConversion },
+      ],
     });
 
-    if (!transaction) {
-      throw errResponse("Transaction not found", 404);
-    }
+    const originalBalance = await calculateOriginalAccountBalance(
+      transaction.Account.id,
+      transaction.id
+    );
 
-    if (transaction.Account.user_id !== userId) {
-      throw errResponse(
-        "Unauthorized to delete trasaction",
-        403,
-        "transaction"
-      );
-    }
-
-    let accountBalance = await getFormattedBalance(transaction.Account.balance);
-    let transactionAmount = await getFormattedBalance(transaction.amount);
-
-    if (transaction.transaction_type === "income") {
-      accountBalance -= transactionAmount;
-    } else {
-      accountBalance += transactionAmount;
-    }
-
-    transaction.Account.balance = accountBalance;
+    transaction.Account.balance = originalBalance;
 
     await transaction.destroy();
+    await transaction.TransactionConversion.destroy();
     await transaction.Account.save();
     return true;
   }

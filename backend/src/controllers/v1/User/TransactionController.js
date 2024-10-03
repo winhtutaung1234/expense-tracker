@@ -43,9 +43,8 @@ module.exports = {
 
   destroy: asyncHandler(async (req, res) => {
     const { id } = req.params;
-    const { user } = req;
 
-    await TransactionService.deleteTransaction(id, user.id);
+    await TransactionService.deleteTransaction(id);
     return res.json({ msg: "Transaction deleted successfully" });
   }),
 };

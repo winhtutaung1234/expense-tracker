@@ -1,5 +1,4 @@
-const { User } = require("../../models");
-const { Account } = require("../../models");
+const { User, Account, Transaction } = require("../../models");
 
 const errResponse = require("../../utils/error/errResponse");
 
@@ -21,7 +20,7 @@ function isOwner(type) {
         const account = await Account.findByPk(id);
 
         if (!account) {
-          throw errResponse("Account not found", 404);
+          throw errResponse("Account not found", 404, "account");
         }
 
         if (account.user_id === user.id) {
@@ -29,7 +28,20 @@ function isOwner(type) {
         }
       }
 
-      return res.status(403).json({ msg: "Unauthorized" });
+      if (type === "transaction") {
+        const transaction = await Transaction.findByPk(id, {
+          include: [{ model: Account, attributes: ["user_id"] }],
+        });
+
+        if (!transaction)
+          throw errResponse("Transaction not found", 404, "transaction");
+
+        if (transaction.Account.user_id === user.id) {
+          return next();
+        }
+      }
+
+      throw errResponse("Unauthorized", 403, "isOnwer");
     } catch (err) {
       return next(err);
     }

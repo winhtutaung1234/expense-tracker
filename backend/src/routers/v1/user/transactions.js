@@ -6,6 +6,7 @@ const {
   updateTransactionMiddleware,
   deleteTransactionMiddleware,
 } = require("../../../middlewares/TransactionMiddleware");
+const isOwner = require("../../../middlewares/AuthMiddleware/isOwner");
 
 const router = express.Router();
 
@@ -14,6 +15,11 @@ router
   .get("/:id", TransactionController.show)
   .post("/", createTransactionMiddleware, TransactionController.create)
   .put("/:id", updateTransactionMiddleware, TransactionController.update)
-  .delete("/:id", deleteTransactionMiddleware, TransactionController.destroy);
+  .delete(
+    "/:id",
+    isOwner("transaction"),
+    deleteTransactionMiddleware,
+    TransactionController.destroy
+  );
 
 module.exports = { transactionsRouter: router };

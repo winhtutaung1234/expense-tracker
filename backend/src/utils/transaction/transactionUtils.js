@@ -6,6 +6,45 @@ const {
   Transaction,
   TransactionConversion,
 } = require("../../models");
+const { getFormattedBalance } = require("../currency/formattedBalance");
+
+async function calculateOriginalAccountBalance(accountId, transactionId) {
+  const account = await Account.findByPk(accountId);
+  const transaction = await Transaction.findByPk(transactionId, {
+    attributes: ["transaction_type", "amount", "currency_id"],
+    include: [
+      {
+        model: TransactionConversion,
+        attributes: ["converted_amount"],
+      },
+    ],
+  });
+
+  if (!account) {
+    throw errResponse("Account not found", 404, "account");
+  } else if (!transaction) {
+    throw errResponse("Transaction not found", 404, "transaction");
+  }
+
+  let originalBalance = await getFormattedBalance(account.balance);
+  const transactionAmount = await getFormattedBalance(transaction.amount);
+  const convertedAmount = await getFormattedBalance(
+    transaction.TransactionConversion.converted_amount
+  );
+
+  if (transaction.transaction_type === "income") {
+    originalBalance -=
+      account.currency_id !== transaction.currency_id
+        ? convertedAmount
+        : transactionAmount;
+  } else {
+    originalBalance +=
+      account.currency_id !== transaction.currency_id
+        ? convertedAmount
+        : transactionAmount;
+  }
+  return originalBalance;
+}
 
 async function getTransactionsWithAssociation(accountId) {
   const transactions = await Transaction.findAll({
@@ -96,6 +135,7 @@ async function getTransactionWithAssociation(transactionId) {
 }
 
 module.exports = {
+  calculateOriginalAccountBalance,
   getTransactionWithAssociation,
   getTransactionsWithAssociation,
 };
