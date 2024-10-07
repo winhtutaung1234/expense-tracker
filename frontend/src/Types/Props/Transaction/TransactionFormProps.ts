@@ -12,7 +12,6 @@ type TransactionFormProps = {
     createTransactionForm: (data?: DefaultTransactionFormParameter) => TransactionForm,
     resetErrorWithTimeout: () => void,
     validateTransactionForm: () => boolean,
-    updateTransactionForm: (newData: Partial<Transaction>) => void
 }
 
 export default TransactionFormProps

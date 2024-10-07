@@ -1,7 +1,8 @@
+import { Category } from "../../Types/Category";
 import { Data } from "../../Types/Props/LineChart";
-import { Transaction } from "../../Types/Transaction";
+import { Transaction, TransactionChartCategoryFilter } from "../../Types/Transaction";
 
-export const getChartData = (transactions: Transaction[], filter: string, categories?: string[]): Data => {
+export const getChartData = (transactions: Transaction[], allCategories: Category[], filter: string, categories?: TransactionChartCategoryFilter[]): Data => {
     const timePeriod = getTimePeriod(filter);
     const labels = getLabels(filter, timePeriod);
 
@@ -34,48 +35,31 @@ export const getChartData = (transactions: Transaction[], filter: string, catego
             return dataSet;
         }, { ...dataSetTemplate });
 
-    const incomeTransactions = filteredTransactions.filter(t => t.transaction_type !== "expense");
-    const expenseTransactions = filteredTransactions.filter(t => t.transaction_type !== "income");
 
-    const incomeDataSet = aggregateTransactions(incomeTransactions, initializeDataSetTemplate());
-    const expenseDataSet = aggregateTransactions(expenseTransactions, initializeDataSetTemplate());
+    categories?.forEach((category) => {
+        let categoryFilteredTransactions = filteredTransactions;
+        let name = allCategories.find(c => c.id === category.category_id)?.name ?? "Total"
+        if (category.category_id) {
+            categoryFilteredTransactions = filteredTransactions.filter(t => t.category_id === category.category_id);
+        }
 
-    data.datasets.push({
-        label: "Total Income",
-        data: Object.values(incomeDataSet),
-        borderColor: "#05CE73",
-    });
-    data.datasets.push({
-        label: "Total Expense",
-        data: Object.values(expenseDataSet),
-        borderColor: "#FF5649",
-    });
+        const incomeTransactions = categoryFilteredTransactions.filter(t => t.transaction_type !== "expense");
+        const expenseTransactions = categoryFilteredTransactions.filter(t => t.transaction_type !== "income");
 
-    if (categories) {
-        categories.forEach((category) => {
-            const categoryTransactions = filteredTransactions.filter(t => t.category.name === category);
+        const incomeDataSet = aggregateTransactions(incomeTransactions, initializeDataSetTemplate());
+        const expenseDataSet = aggregateTransactions(expenseTransactions, initializeDataSetTemplate());
 
-            const categoryIncomeTransactions = categoryTransactions.filter(t => t.transaction_type !== "expense");
-            const categoryExpenseTransactions = categoryTransactions.filter(t => t.transaction_type !== "income");
-
-            const categoryIncomeDataSet = aggregateTransactions(categoryIncomeTransactions, initializeDataSetTemplate());
-            const categoryExpenseDataSet = aggregateTransactions(categoryExpenseTransactions, initializeDataSetTemplate());
-
-            data.datasets.push({
-                label: `${category} Income`,
-                data: Object.values(categoryIncomeDataSet),
-                borderColor: "#05CE73",
-                hidden: true
-            });
-            data.datasets.push({
-                label: `${category} Expense`,
-                data: Object.values(categoryExpenseDataSet),
-                borderColor: "#FF5649",
-                hidden: true
-            });
+        data.datasets.push({
+            label: `${name} Income`,
+            data: Object.values(incomeDataSet),
+            borderColor: category.income_color,
         });
-    }
-
+        data.datasets.push({
+            label: `${name} Expense`,
+            data: Object.values(expenseDataSet),
+            borderColor: category.expense_color,
+        });
+    })
     return data;
 };
 

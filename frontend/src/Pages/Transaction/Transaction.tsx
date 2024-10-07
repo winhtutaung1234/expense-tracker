@@ -147,7 +147,7 @@ const Transaction = () => {
     }, [allAccounts])
 
     useEffect(() => {
-        let chartData = getChartData(selectedAccountTransactions, selectedChartFilter);
+        let chartData = getChartData(selectedAccountTransactions, allCategories, selectedChartFilter);
         setData(chartData);
     }, [selectedAccountTransactions, selectedChartFilter])
 

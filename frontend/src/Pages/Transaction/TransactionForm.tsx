@@ -34,7 +34,8 @@ const TransactionForm = (TransactionFormProps: TransactionFormProps) => {
         setSelectedAccountTransactions,
         setSelectedEditID,
         setTransactionFormData,
-        transactionFormData
+        transactionFormData,
+        updateTransactionForm
     } = context;
 
     const {
@@ -45,7 +46,6 @@ const TransactionForm = (TransactionFormProps: TransactionFormProps) => {
         createTransactionForm,
         resetErrorWithTimeout,
         validateTransactionForm,
-        updateTransactionForm,
     } = TransactionFormProps;
 
     const handleInputChange = (e: ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {

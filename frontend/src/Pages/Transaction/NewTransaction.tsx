@@ -6,7 +6,7 @@ import AccountService from '../../Services/Account';
 import Currency from '../../Services/Currency';
 import TransactionService from '../../Services/Transaction';
 import { Column, Table } from '../../Components/Table';
-import { TransactionForm as TransactionFormType, Transaction as TransactionType } from '../../Types/Transaction';
+import { TransactionForm as TransactionFormType, TransactionPageContext as TransactionPageContextType, Transaction as TransactionType } from '../../Types/Transaction';
 import Category from '../../Services/Category';
 import { Category as CategoryType } from '../../Types/Category';
 import { NavLink, useLocation, useOutletContext } from 'react-router-dom';
@@ -34,21 +34,6 @@ export type DefaultTransactionFormParameter = {
 };
 
 export const TransactionPageContext = createContext<TransactionPageContextType | null>(null);
-
-export type TransactionPageContextType = {
-  allAccounts: AccountType[],
-  setAllAccounts: React.Dispatch<React.SetStateAction<AccountType[]>>,
-  selectedEditID: string | number | null,
-  setSelectedEditID: React.Dispatch<React.SetStateAction<string | number | null>>,
-  transactionFormData: TransactionFormType,
-  setTransactionFormData: React.Dispatch<React.SetStateAction<TransactionFormType>>,
-  selectedAccountTransactions: TransactionType[],
-  setSelectedAccountTransactions: React.Dispatch<React.SetStateAction<TransactionType[]>>,
-  allCurrencies: CurrencyType[],
-  setAllCurrencies: React.Dispatch<React.SetStateAction<CurrencyType[]>>,
-  allCategories: CategoryType[],
-  setAllCategories: React.Dispatch<React.SetStateAction<CategoryType[]>>,
-}
 
 const NewTransaction = () => {
   const location = useLocation();
@@ -81,12 +66,6 @@ const NewTransaction = () => {
   const [selectedAccountTransactions, setSelectedAccountTransactions] = useState<TransactionType[]>([]);
   const [selectedAccountBalance, setSelectedAccountBalance] = useState<string | null>(null);
 
-  //Chart
-  const [selectedChartFilter, setSelectedChartFilter] = useState("this_week");
-  const [data, setData] = useState<Data>({
-    labels: [],
-    datasets: [],
-  });
 
   //Fetch Necessary Data
   useEffect(() => {
@@ -168,11 +147,6 @@ const NewTransaction = () => {
       setSelectedAccountBalance(`${accountBalance} ${selectedAccount.currency.code}`)
     }
   }, [allAccounts])
-
-  useEffect(() => {
-    let chartData = getChartData(selectedAccountTransactions, selectedChartFilter);
-    setData(chartData);
-  }, [selectedAccountTransactions, selectedChartFilter])
 
   /* Start of Delete Transaction */
   const handleDeleteAccountClick = (id: number) => {
@@ -276,7 +250,8 @@ const NewTransaction = () => {
       allCurrencies,
       setAllCurrencies,
       allCategories,
-      setAllCategories
+      setAllCategories,
+      updateTransactionForm
     }}>
       <div className={`text-white min-h-[200vh]`}>
         <div className={`z-10 sticky transition-al ${showNav ? (fixedNav ? "top-40" : "top-10") : "top-10"}`}>
@@ -302,66 +277,8 @@ const NewTransaction = () => {
             </div>
           </div>
         </div>
-        <div className='flex justify-between items-center mb-2 mt-5'>
-          <p className='font-inter text-[28px] text-white font-light tracking-wide'>Transaction Chart</p>
-          <select
-            onChange={(e) => setSelectedChartFilter(e.target.value)}
-            value={selectedChartFilter}
-            name='chart_filter'
-            className="bg-light-gray text-white py-1 px-2 rounded-md">
-            <option value="this_week">This Week</option>
-            <option value="last_week">Last Week</option>
-            <option value="last_2_weeks">Last 2 Weeks</option>
-            <option value="last_month">Last Month</option>
-            <option value="last_3_months">Last 3 Months</option>
-            <option value="last_6_months">Last 6 Months</option>
-            <option value="this_year">This Year</option>
-          </select>
-        </div>
-        <LineChart data={data} options={{}} />
-        <div className='flex gap-8'>
-          <div className='lg:w-[60%] max-lg:w-full'>
-            <p className='font-inter text-[28px] text-white font-light tracking-wide'>Adjust Chart Data</p>
-            <div className='w-full bg-dark-gray flex flex-wrap gap-4 p-6 rounded-lg shadow-md'>
-              <div className='flex flex-col flex-1 gap-4'>
-                <div className='flex items-center gap-2'>
-                  <p className='font-montserrat text-[16px] opacity-50 whitespace-nowrap'>Currently Showing:</p>
-                  <Select<CategoryType>
-                    allOptions={allCategories}
-                    dataIndex='id'
-                    displayKey='name'
-                    value={transactionFormData.category_id}
-                    className='min-h-[35px]'
-                    onChange={(id) => updateTransactionForm({ category_id: Number(id) })}
-                  />
-                </div>
-                <div className='flex justify-around'>
-                  <div className='flex flex-col gap-2 items-center'>
-                    <p className='font-montserrat text-[14px] opacity-50'>Income Color</p>
-                    <input type='color' />
-                  </div>
-                  <div className='flex flex-col gap-2 items-center'>
-                    <p className='font-montserrat text-[14px] opacity-50'>Expense Color</p>
-                    <input type='color' />
-                  </div>
-                </div>
-              </div>
-              <div className='flex flex-col flex-1 gap-2'>
-                <div className='flex items-center'>
-                  <p className='font-montserrat opacity-50 w-[40%]'>Total Income:</p>
-                  <p className='font-bold text-[24px] text-[#05CE73]'>52,000 Ks</p>
-                </div>
-                <div className='flex items-center'>
-                  <p className='font-montserrat opacity-50 w-[40%]'>Total Expense:</p>
-                  <p className='font-bold text-[24px] text-[#FF5649]'>52,000 Ks</p>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div className='lg:w-[40%] bg-black'>
+        <TransactionChart />
 
-          </div>
-        </div>
       </div>
     </TransactionPageContext.Provider >
   )
@@ -378,13 +295,6 @@ validateTransactionForm={validateTransactionForm}
 transactionFormDataError={transactionFormDataError}
 setTransactionFormDataError={setTransactionFormDataError}
 updateTransactionForm={updateTransactionForm}
-/> */}
-
-{/* <TransactionChart
-selectedChartFilter={selectedChartFilter}
-setSelectedChartFilter={setSelectedChartFilter}
-data={data}
-setData={setData}
 /> */}
 
 {/* <div className={`flex justify-between py-2 px-4 sticky transition-all  z-10 ${showNav ? (fixedNav ? "top-40" : "top-10") : "top-10"} shadow-md rounded-xl`} style={{ background: "rgba(255,255,255,0.1)", backdropFilter: "blur(5px)", border: "1px solid rgba(253,228,96,0.5)", borderRight: "1px solid rgba(253,228,96,0.2)", borderTop: "1px solid rgba(253,228,96,0.2)" }}>
