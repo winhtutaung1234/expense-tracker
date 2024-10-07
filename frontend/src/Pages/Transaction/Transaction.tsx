@@ -10,12 +10,10 @@ import { TransactionForm, Transaction as TransactionType } from '../../Types/Tra
 import Category from '../../Services/Category';
 import { Category as CategoryType } from '../../Types/Category';
 import { NavLink, useLocation, useOutletContext } from 'react-router-dom';
-import FormatDecimal from '../../Utils/FormatDecimal';
 import formatCurrency from '../../Utils/FormatCurrency';
 import { formatDateWithSuffix } from '../../Utils/FormatDate';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faEdit, faEye, faTrash } from '@fortawesome/free-solid-svg-icons';
-import formatDecimal from '../../Utils/FormatDecimal';
+import { faArrowRight, faEdit, faEye, faTrash } from '@fortawesome/free-solid-svg-icons';
 import getError from '../../Utils/getError';
 import Error from '../../Components/Errors';
 import Validator from '../../Validator';
@@ -23,26 +21,25 @@ import LineChart from '../../Components/Chart/LineChart';
 import Logo from '../../Assets/Logo';
 import { getChartData } from './getTransactionChartData';
 import { Data } from '../../Types/Props/LineChart';
+import { Select } from '../../Components/Select';
+import { faArrowLeft } from '@fortawesome/free-solid-svg-icons/faArrowLeft';
+import { OutletContext } from '../../Types/Context';
 
 
 const Transaction = () => {
 
-    //Data
     const location = useLocation();
     const { state } = location;
+    const { showNav, fixedNav } = useOutletContext<OutletContext>();
+
+    //States
     const [allAccounts, setAllAccounts] = useState<AccountType[]>([]);
     const [allCurrencies, setAllCurrencies] = useState<CurrencyType[]>([]);
     const [allCategories, setAllCategories] = useState<CategoryType[]>([]);
-    const [transactionFormData, setTransactionFormData] = useState<TransactionForm>({
-        account_id: (state && state?.account_id) || 0,
-        amount: "",
-        category_id: 0,
-        currency_id: 0,
-        description: "",
-        transaction_type: "income"
-    });
+    const [transactionFormData, setTransactionFormData] = useState<TransactionForm>(createTransactionForm({ firstTimeRender: true }));
 
-    const { showNav } = useOutletContext<{ showNav: Boolean }>();
+    //Form State
+    const [showForm, setShowForm] = useState<"open" | "close" | "none">("none");
 
     //Error
     const [transactionFormDataError, setTransactionFormDataError] = useState<Partial<Record<keyof TransactionForm, string[]>>>();
@@ -75,27 +72,23 @@ const Transaction = () => {
                 if (data) {
                     setAllAccounts(data);
                     if (!transactionFormData.account_id) {
-                        setTransactionFormData(prevData => ({ ...prevData, account_id: data[0].id, currency_id: data[0].currency_id }))
+                        updateTransactionForm({ account_id: data[0].id, currency_id: data[0].currency_id })
                     } else {
                         const selectedAccount = data.find(account => account.id == transactionFormData.account_id);
                         if (selectedAccount) {
-                            setTransactionFormData(prevData => ({ ...prevData, currency_id: selectedAccount.currency_id }))
+                            updateTransactionForm({ currency_id: selectedAccount.currency_id });
                         }
                     }
                 }
             })
             .catch(() => {
-
             })
 
         Currency.getAll()
             .then((data) => {
                 setAllCurrencies(data);
                 if (data.length > 0 && !transactionFormData.currency_id) {
-                    setTransactionFormData((prevData) => ({
-                        ...prevData,
-                        currency_id: data[0].id
-                    }))
+                    updateTransactionForm({ currency_id: data[0].id });
                 }
             })
             .catch(() => {
@@ -104,10 +97,7 @@ const Transaction = () => {
         Category.getAll()
             .then((data) => {
                 setAllCategories(data);
-                setTransactionFormData((prevData) => ({
-                    ...prevData,
-                    category_id: data[0].id
-                }))
+                updateTransactionForm({ category_id: data[0].id })
             })
             .catch(() => {
             })
@@ -121,33 +111,15 @@ const Transaction = () => {
                 })
         }
 
-        return () => {
-            if (resetErrorTimeoutRef.current) {
-                clearTimeout(resetErrorTimeoutRef.current);
-            }
-        };
+        return cleanupOnUnmount
     }, [])
-
-    useEffect(() => {
-        if (state && state.account_id) {
-            setTransactionFormData(prevData => ({ ...prevData, account_id: state.account_id }))
-        }
-    }, [state])
-
-    const handleInputChange = (e: ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
-        console.log(e.target.value);
-        setTransactionFormData((prevData) => ({
-            ...prevData,
-            [e.target.name]: e.target.value
-        }))
-    }
 
     useEffect(() => {
         if (transactionFormData.account_id) {
             AccountService.getAccount(transactionFormData.account_id)
                 .then((data) => {
                     setAllAccounts(prevData => (prevData.map(account => account.id == transactionFormData.account_id ? data : account)))
-                    setTransactionFormData(prevData => ({ ...prevData, currency_id: data.currency_id }));
+                    updateTransactionForm({ currency_id: data.currency_id });
                     TransactionService.getTransactionsByAccount(transactionFormData.account_id)
                         .then((data) => {
                             setSelectedAccountTransactions(data);
@@ -179,6 +151,14 @@ const Transaction = () => {
         setData(chartData);
     }, [selectedAccountTransactions, selectedChartFilter])
 
+    const handleInputChange = (e: ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
+        updateTransactionForm({ [e.target.name]: e.target.value })
+    }
+
+    const handleCategoryChange = (id: string | number) => {
+        updateTransactionForm({ category_id: Number(id) })
+    }
+
     /* Start of Chart Filter */
     const handleChartFilterChange = (e: ChangeEvent<HTMLSelectElement>) => {
         setSelectedChartFilter(e.target.value);
@@ -188,14 +168,7 @@ const Transaction = () => {
     /* Start of Create Transaction */
     const handleAddTransactionClick = (e: MouseEvent<HTMLButtonElement>) => {
         e.preventDefault();
-        const validated = Validator(transactionFormData, {
-            account_id: ['required'],
-            amount: ['required'],
-            category_id: ['required'],
-            currency_id: ['required'],
-            description: ['nullable'],
-            transaction_type: ['required']
-        }, setTransactionFormDataError)
+        const validated = validateTransactionForm()
 
         if (validated) {
             TransactionService.createTransaction(transactionFormData)
@@ -204,14 +177,7 @@ const Transaction = () => {
                     AccountService.getAccount(data.account_id)
                         .then((data) => {
                             setAllAccounts(prevData => (prevData.map(account => account.id == transactionFormData.account_id ? data : account)))
-                            setTransactionFormData({
-                                account_id: allAccounts.length > 0 ? allAccounts[0].id : 0,
-                                amount: "",
-                                category_id: allCategories.length > 0 ? allCategories[0].id : 0,
-                                currency_id: allCurrencies.length > 0 && transactionFormData.account_id && allAccounts ? allAccounts.find(account => account.id == transactionFormData.account_id)?.currency_id || allCurrencies[0].id : 0,
-                                description: "",
-                                transaction_type: "income"
-                            })
+                            setTransactionFormData(createTransactionForm());
                         })
                         .catch(() => {
                         })
@@ -219,14 +185,10 @@ const Transaction = () => {
                 .catch((error) => {
                     const formError = getError(error);
                     setTransactionFormDataError(formError);
-                    resetErrorTimeoutRef.current = window.setTimeout(() => {
-                        setTransactionFormDataError({});
-                    }, 2000);
+                    resetErrorWithTimeout()
                 })
         } else {
-            resetErrorTimeoutRef.current = window.setTimeout(() => {
-                setTransactionFormDataError({});
-            }, 2000);
+            resetErrorWithTimeout()
         }
     }
     /* End of Create Transaction */
@@ -236,14 +198,7 @@ const Transaction = () => {
         setSelectedEditID(id);
         TransactionService.getTransaction(id)
             .then((data) => {
-                setTransactionFormData({
-                    account_id: data.account_id,
-                    amount: data.amount,
-                    category_id: data.category_id,
-                    currency_id: data.currency_id,
-                    description: data.description,
-                    transaction_type: data.transaction_type
-                })
+                setTransactionFormData(createTransactionForm({ data: data }))
             })
             .catch(() => {
             })
@@ -251,38 +206,17 @@ const Transaction = () => {
 
     const handleCancelEditClick = () => {
         setSelectedEditID(null);
-        setTransactionFormData({
-            account_id: allAccounts.length > 0 ? allAccounts[0].id : 0,
-            amount: "",
-            category_id: allCategories.length > 0 ? allCategories[0].id : 0,
-            currency_id: allCurrencies.length > 0 && transactionFormData.account_id && allAccounts ? allAccounts.find(account => account.id == transactionFormData.account_id)?.currency_id || allCurrencies[0].id : 0,
-            description: "",
-            transaction_type: "income"
-        })
+        setTransactionFormData(createTransactionForm())
     }
 
     const handeSaveEditClick = () => {
-        const validated = Validator(transactionFormData, {
-            account_id: ['required'],
-            amount: ['required'],
-            category_id: ['required'],
-            currency_id: ['required'],
-            description: ['nullable'],
-            transaction_type: ['required']
-        }, setTransactionFormDataError)
+        const validated = validateTransactionForm();
         if (validated && selectedEditID) {
             TransactionService.updateTransaction(selectedEditID, transactionFormData)
                 .then((newTransaction) => {
                     setSelectedAccountTransactions(prevData => prevData.map(transaction => transaction.id == newTransaction.id ? newTransaction : transaction));
                     setSelectedEditID(null);
-                    setTransactionFormData({
-                        account_id: allAccounts.length > 0 ? allAccounts[0].id : 0,
-                        amount: "",
-                        category_id: allCategories.length > 0 ? allCategories[0].id : 0,
-                        currency_id: allCurrencies.length > 0 && transactionFormData.account_id && allAccounts ? allAccounts.find(account => account.id == transactionFormData.account_id)?.currency_id || allCurrencies[0].id : 0,
-                        description: "",
-                        transaction_type: "income"
-                    })
+                    setTransactionFormData(createTransactionForm())
                     AccountService.getAccount(newTransaction.account_id)
                         .then((data) => {
                             setAllAccounts(prevData => (prevData.map(account => account.id == transactionFormData.account_id ? data : account)))
@@ -293,9 +227,7 @@ const Transaction = () => {
                 .catch(() => {
                 })
         } else {
-            resetErrorTimeoutRef.current = window.setTimeout(() => {
-                setTransactionFormDataError({});
-            }, 2000);
+            resetErrorWithTimeout()
         }
     }
     /* End of Edit Transaction */
@@ -333,12 +265,84 @@ const Transaction = () => {
     }
     /* End of Delete Transaction */
 
+    /* Utility and Helper Functions */
+
+    const validateTransactionForm = () => {
+        return Validator(transactionFormData, {
+            account_id: ['required'],
+            amount: ['required'],
+            category_id: ['required'],
+            currency_id: ['required'],
+            description: ['nullable'],
+            transaction_type: ['required'],
+            date: ['nullable'],
+        }, setTransactionFormDataError)
+    }
+
+    const findAccount = (id: AccountType["id"]): AccountType | null =>
+        allAccounts.find(account => account.id === id) || null;
+
+    const findCategory = (id: CategoryType["id"]): CategoryType | null =>
+        allCategories.find(category => category.id === id) || null;
+
+    type DefaultTransactionFormParameter = {
+        firstTimeRender?: boolean;
+        data?: TransactionType | null;
+    };
+
+    function updateTransactionForm(newData: Partial<TransactionType>) {
+        setTransactionFormData(prevData => ({ ...prevData, ...newData }));
+    }
+
+    function createTransactionForm({
+        firstTimeRender = false,
+        data = null
+    }: DefaultTransactionFormParameter = {}): TransactionForm {
+        const defaultAccountId = allAccounts.length > 0 ? allAccounts[0].id : 0;
+
+        return {
+            account_id: data?.account_id || (state && state.account_id ? state.account_id : defaultAccountId),
+            amount: data?.amount || "",
+            category_id: data?.category_id || (allCategories.length > 0 ? allCategories[0].id : 0),
+            currency_id: firstTimeRender
+                ? (allCurrencies.length > 0 ? allCurrencies[0].id : 0)
+                : (data?.account_id ? findAccount(data.account_id)?.currency_id || allCurrencies[0].id : (transactionFormData.account_id ? findAccount(transactionFormData.account_id)?.currency_id || allCurrencies[0].id : allCurrencies[0].id)),
+            description: data?.description || "",
+            transaction_type: data?.transaction_type || "income",
+            date: data?.date || ""
+        };
+    }
+
+    function resetErrorWithTimeout() {
+        if (resetErrorTimeoutRef.current) {
+            clearTimeout(resetErrorTimeoutRef.current);
+        }
+        resetErrorTimeoutRef.current = window.setTimeout(() => {
+            setTransactionFormDataError({});
+        }, 5000);
+    }
+
+    function cleanupOnUnmount() {
+        if (resetErrorTimeoutRef.current) {
+            clearTimeout(resetErrorTimeoutRef.current);
+        }
+    }
 
     return (
         <main>
             {showWarningModal && <Modal onConfirm={confirmDelete} onClose={rejectDelete} type='warning' confirmButtonText='Delete' text='Are you sure you want to delete this Transaction?' />}
-            <div className='flex gap-10 dark:text-white max-lg:flex-col flex-wrap'>
-                <form className='bg-gray border border-light-yellow border-opacity-50 px-6 pt-4 pb-6 flex flex-col gap-5 flex-[0.3] max-lg:w-1/2 mx-auto max-md:w-[65%] max-sm:w-[90%] rounded-xl h-full sticky top-40 max-h-[500px]'>
+            <div className='flex justify-between dark:text-white max-lg:flex-col'>
+                {
+                    showForm === "close" && (
+                        <div className='fixed bg-login-button text-black px-2 rounded-sm top-1/2 -translate-y-1/2 left-0' onClick={() => setShowForm("open")}>
+                            <FontAwesomeIcon icon={faArrowRight} />
+                        </div>
+                    )
+                }
+                <form className={`bg-gray border border-light-yellow border-opacity-50 px-6 pt-4 pb-6 flex flex-col w-[30%] gap-5 max-lg:w-1/2 mx-auto max-md:w-[65%] max-sm:w-[90%] rounded-xl h-full sticky top-40 max-h-[500px] ${showForm === "open" ? "animate-openForm" : (showForm === "close" ? "animate-closeForm" : "")}`}>
+                    <div className='absolute top-0 right-0 bg-login-button text-black translate-x-1/2 -translate-y-1/2 rounded-sm px-2' onClick={() => setShowForm("close")}>
+                        <FontAwesomeIcon icon={faArrowLeft} />
+                    </div>
                     <div className={`absolute left-1/2 -translate-x-1/2 -top-20 flex w-full justify-center ${showNav ? "animate-closeNav" : "animate-openNav"}`}>
                         <img width={70} src={Logo} />
                         <div className='flex flex-col items-center'>
@@ -346,7 +350,7 @@ const Transaction = () => {
                             <p className='font-arsenal text-[10px] dark:text-white'>Free yourself Financially</p>
                         </div>
                     </div>
-                    <div className='flex flex-col gap-5 overflow-y-scroll pr-2 scrollBar'>
+                    <div className='flex flex-col gap-5 overflow-y-scroll pr-2 scrollBar scrollBarWidth6'>
                         <div className='flex flex-col gap-2'>
                             <p className='font-inter text-[18px]'>Transaction</p>
                             <div className='flex gap-4'>
@@ -392,27 +396,6 @@ const Transaction = () => {
                             <Error allErrors={transactionFormDataError} showError='currency_id' />
                         </div>
                         <div className='flex flex-col gap-2'>
-                            <p className='font-inter text-[18px]'>Category</p>
-                            <div className='relative'>
-                                <select
-                                    name='category_id'
-                                    onChange={handleInputChange}
-                                    value={transactionFormData.category_id}
-                                    className='bg-light-gray min-h-[45px] max-h-[45px] w-full rounded-md ps-4 appearance-none shadow-lg font-montserrat'
-                                >
-                                    {allCategories && allCategories.map((category) => (
-                                        <option key={category.id} value={category.id}>{category.name}</option>
-                                    ))}
-                                </select>
-                                <div className="pointer-events-none absolute inset-y-0 right-3 flex items-center">
-                                    <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
-                                    </svg>
-                                </div>
-                            </div>
-                            <Error allErrors={transactionFormDataError} showError='category_id' />
-                        </div>
-                        <div className='flex flex-col gap-2'>
                             <p className='font-inter text-[18px]'>Transaction Type</p>
                             <div className='relative'>
                                 <select
@@ -431,6 +414,34 @@ const Transaction = () => {
                                     </svg>
                                 </div>
                             </div>
+                            <Error allErrors={transactionFormDataError} showError='transaction_type' />
+                        </div>
+                        <div className='flex flex-col gap-2'>
+                            <p className='font-inter text-[18px]'>Category</p>
+                            <Select<CategoryType>
+                                allOptions={allCategories}
+                                onChange={handleCategoryChange}
+                                value={transactionFormData.category_id}
+                                dataIndex="id"
+                                displayKey="name"
+                                className='min-h-[45px]'
+                                // style={{
+                                //     background: findCategory(Number(transactionFormData.category_id))?.background_color,
+                                //     color: findCategory(Number(transactionFormData.category_id))?.text_color
+                                // }}
+                                search={true}
+                            />
+                            <Error allErrors={transactionFormDataError} showError='category_id' />
+                        </div>
+                        <div className='flex flex-col gap-2'>
+                            <p className='font-inter text-[18px]'>Date</p>
+                            <input
+                                type='date'
+                                name='date'
+                                value={transactionFormData.date}
+                                onChange={handleInputChange}
+                                className='bg-light-gray min-h-[45px] max-h-[45px] w-full rounded-md placeholder:font-montserrat placeholder:text-white placeholder:text-opacity-50 ps-4 shadow-lg '
+                            />
                             <Error allErrors={transactionFormDataError} showError='transaction_type' />
                         </div>
                         <div className='flex flex-col gap-2'>
@@ -476,17 +487,17 @@ const Transaction = () => {
                         </button>
                     )}
                 </form>
-                <div className='flex-[0.7] flex flex-col'>
-                    <div className={`flex justify-between py-2 px-4 sticky transition-all ${showNav ? "top-40" : "top-10"} shadow-md rounded-xl`} style={{ background: "rgba(255,255,255,0.1)", backdropFilter: "blur(5px)", border: "1px solid rgba(253,228,96,0.5)", borderRight: "1px solid rgba(253,228,96,0.2)", borderTop: "1px solid rgba(253,228,96,0.2)" }}>
+                <div className={`flex flex-col w-[65%] transition-all ${showForm === "open" ? "animate-retractTransaction" : (showForm === "close" ? "animate-expandTransaction" : "")}`}>
+                    <div className={`flex justify-between py-2 px-4 sticky transition-all  z-10 ${showNav ? (fixedNav ? "top-40" : "top-10") : "top-10"} shadow-md rounded-xl`} style={{ background: "rgba(255,255,255,0.1)", backdropFilter: "blur(5px)", border: "1px solid rgba(253,228,96,0.5)", borderRight: "1px solid rgba(253,228,96,0.2)", borderTop: "1px solid rgba(253,228,96,0.2)" }}>
                         <div className='flex flex-col'>
-                            <p className='text-[18px] font-inter'>Your Balance</p>
+                            <p className='font-inter opacity-75'>Your Balance</p>
                             <div className='text-[32px] font-inter font-bold flex items-center gap-2'>
                                 <img src="/src/Assets/Flag/5546712_myanmar_asia_circle_country_flag_icon.png" className='w-10' />
                                 {selectedAccountBalance && selectedAccountBalance}
                             </div>
                         </div>
                         <div className='flex flex-col items-end gap-2'>
-                            <p className='text-[18px] font-inter'>Selected Account</p>
+                            <p className='font-inter opacity-75'>Selected Account</p>
                             <select
                                 name='account_id'
                                 value={transactionFormData.account_id}
@@ -498,28 +509,118 @@ const Transaction = () => {
                             </select>
                         </div>
                     </div>
-                    <div className='mt-5 mb-8'>
-                        <div className='flex justify-between items-center mb-2'>
-                            <p className='font-inter text-[32px] text-light-yellow font-light'>Transaction Chart</p>
-                            <select
-                                onChange={handleChartFilterChange}
-                                name='chart_filter'
-                                className="bg-light-yellow text-black py-1 px-2 rounded-md">
-                                <option value="this_week">This Week</option>
-                                <option value="last_week">Last Week</option>
-                                <option value="last_2_weeks">Last 2 Weeks</option>
-                                <option value="last_month">Last Month</option>
-                                <option value="last_3_months">Last 3 Months</option>
-                                <option value="last_6_months">Last 6 Months</option>
-                                <option value="this_year">This Year</option>
-                            </select>
-                        </div>
-                        <div>
-
-                        </div>
-                        <LineChart options={{}} data={data} />
+                    <div className='flex justify-between items-center mb-2 mt-5'>
+                        <p className='font-inter text-[28px] text-white font-light tracking-wide'>Transaction Chart</p>
+                        <select
+                            onChange={handleChartFilterChange}
+                            value={selectedChartFilter}
+                            name='chart_filter'
+                            className="bg-light-gray text-white py-1 px-2 rounded-md">
+                            <option value="this_week">This Week</option>
+                            <option value="last_week">Last Week</option>
+                            <option value="last_2_weeks">Last 2 Weeks</option>
+                            <option value="last_month">Last Month</option>
+                            <option value="last_3_months">Last 3 Months</option>
+                            <option value="last_6_months">Last 6 Months</option>
+                            <option value="this_year">This Year</option>
+                        </select>
                     </div>
-                    <p className='font-inter text-[32px] text-light-yellow mt-8 mb-6 font-light'>Transactions History</p>
+                    <LineChart options={{}} data={data} />
+                    <p className='font-inter text-[22px] font-light tracking-wide mt-8 mb-5'>Adjust Chart Data</p>
+                    <div className='flex flex-wrap gap-6 justify-between'>
+                        <div className={`flex ${showForm === "close" ? "w-[48%]" : "w-full"} font-montserrat gap-5 bg-gray p-6 rounded-xl shadow-lg relative`}>
+                            <div className='flex flex-col gap-5 w-1/2'>
+                                <div className='flex gap-3 items-center'>
+                                    <p className='opacity-75 text-[14px] whitespace-nowrap'>Currently Showing:</p>
+                                    <div className='w-1/2'>
+                                        <Select<CategoryType>
+                                            allOptions={allCategories}
+                                            onChange={handleCategoryChange}
+                                            value={transactionFormData.category_id}
+                                            dataIndex="id"
+                                            displayKey="name"
+                                            className='py-1'
+                                            // style={{
+                                            //     background: findCategory(Number(transactionFormData.category_id))?.background_color,
+                                            //     color: findCategory(Number(transactionFormData.category_id))?.text_color
+                                            // }}
+                                            search={true}
+                                        />
+                                    </div>
+                                </div>
+                                <div className='flex justify-around'>
+                                    <div className='flex flex-col items-center gap-1'>
+                                        <p className='opacity-75 text-[14px]'>Income Color</p>
+                                        <input className='bg-light-gray rounded-sm' type='color' value={"#05CE73"} />
+                                    </div>
+                                    <div className='flex flex-col items-center gap-1'>
+                                        <p className='opacity-75 text-[14px]'>Expense Color</p>
+                                        <input className='bg-light-gray rounded-sm' type='color' value={"#FF5649"} />
+                                    </div>
+                                </div>
+                            </div>
+                            <div className='flex flex-col w-1/2 gap-2'>
+                                <div className='flex items-center'>
+                                    <p className='opacity-75 text-[14px] w-[35%]'>Total Income:</p>
+                                    <p className='font-bold text-[24px] text-[#05CE73]'>52,000 Ks</p>
+                                </div>
+                                <div className='flex items-center'>
+                                    <p className='opacity-75 text-[14px] w-[35%]'>Total Expense:</p>
+                                    <p className='font-bold text-[24px] text-[#FF5649]'>52,000 Ks</p>
+                                </div>
+                            </div>
+                            <div className='absolute bottom-0 right-6  bg-light-gray -skew-x-[30deg] px-3'>
+                                <p className='skew-x-[30deg] text-[13px] opacity-75'>August 18th, 2024 - August 24th, 2024</p>
+                            </div>
+                        </div>
+                        <div className={`flex ${showForm === "close" ? "w-[48%]" : "w-full"} font-montserrat gap-5 bg-gray p-6 rounded-xl shadow-lg relative`}>
+                            <div className='flex flex-col gap-5 w-1/2'>
+                                <div className='flex gap-3 items-center'>
+                                    <p className='opacity-75 text-[14px] whitespace-nowrap'>Currently Showing:</p>
+                                    <div className='w-1/2'>
+                                        <Select<CategoryType>
+                                            allOptions={allCategories}
+                                            onChange={handleCategoryChange}
+                                            value={transactionFormData.category_id}
+                                            dataIndex="id"
+                                            displayKey="name"
+                                            className='py-1'
+                                            // style={{
+                                            //     background: findCategory(Number(transactionFormData.category_id))?.background_color,
+                                            //     color: findCategory(Number(transactionFormData.category_id))?.text_color
+                                            // }}
+                                            search={true}
+                                        />
+                                    </div>
+                                </div>
+                                <div className='flex justify-around'>
+                                    <div className='flex flex-col items-center gap-1'>
+                                        <p className='opacity-75 text-[14px]'>Income Color</p>
+                                        <input className='bg-light-gray rounded-sm' type='color' value={"#05CE73"} />
+                                    </div>
+                                    <div className='flex flex-col items-center gap-1'>
+                                        <p className='opacity-75 text-[14px]'>Expense Color</p>
+                                        <input className='bg-light-gray rounded-sm' type='color' value={"#FF5649"} />
+                                    </div>
+                                </div>
+                            </div>
+                            <div className='flex flex-col w-1/2 gap-2'>
+                                <div className='flex items-center'>
+                                    <p className='opacity-75 text-[14px] w-[35%]'>Total Income:</p>
+                                    <p className='font-bold text-[24px] text-[#05CE73]'>52,000 Ks</p>
+                                </div>
+                                <div className='flex items-center'>
+                                    <p className='opacity-75 text-[14px] w-[35%]'>Total Expense:</p>
+                                    <p className='font-bold text-[24px] text-[#FF5649]'>52,000 Ks</p>
+                                </div>
+                            </div>
+                            <div className='absolute bottom-0 right-6  bg-light-gray -skew-x-[30deg] px-3'>
+                                <p className='skew-x-[30deg] text-[13px] opacity-75'>August 18th, 2024 - August 24th, 2024</p>
+                            </div>
+                        </div>
+                    </div>
+                    <hr className='mt-14 opacity-50' />
+                    <p className='font-inter text-[28px] mt-8 mb-6 font-light tracking-wide'>Transactions History</p>
                     <Table<TransactionType>
                         dataSource={selectedAccountTransactions}
                     >
@@ -540,7 +641,10 @@ const Transaction = () => {
                         />
                         <Column
                             title='Exchange Rate'
-                            dataIndex="exchange_rate"
+                            dataIndex="conversion"
+                            render={(value: TransactionType["conversion"]) => {
+                                return value ? value.exchange_rate : "1";
+                            }}
                         />
                         <Column
                             dataIndex="category"
@@ -551,10 +655,10 @@ const Transaction = () => {
                         />
                         <Column
                             title='Date'
-                            dataIndex="created_at"
+                            dataIndex="date"
                             className='whitespace-nowrap'
                             sort
-                            render={(value: TransactionType["created_at"]) => {
+                            render={(value: TransactionType["date"]) => {
                                 return (
                                     <p>{formatDateWithSuffix(value)}</p>
                                 );

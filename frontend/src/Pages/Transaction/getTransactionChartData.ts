@@ -8,8 +8,8 @@ export const getChartData = (transactions: Transaction[], filter: string, catego
     const start = Date.parse(timePeriod[0]);
     const end = Date.parse(timePeriod[timePeriod.length - 1]);
 
-    const filteredTransactions = transactions.filter(({ created_at }) => {
-        const transactionDate = Date.parse(created_at.split('T')[0]);
+    const filteredTransactions = transactions.filter(({ date }) => {
+        const transactionDate = Date.parse(date.split('T')[0]);
         return transactionDate >= start && transactionDate <= end;
     });
 
@@ -22,9 +22,15 @@ export const getChartData = (transactions: Transaction[], filter: string, catego
         timePeriod.reduce((acc, date) => ({ ...acc, [date]: 0 }), {});
 
     const aggregateTransactions = (transactions: Transaction[], dataSetTemplate: { [key: string]: number }) =>
-        transactions.reduce((dataSet, { created_at, amount }) => {
-            const date = created_at.split('T')[0];
-            dataSet[date] = (dataSet[date] || 0) + parseFloat(amount);
+        transactions.reduce((dataSet, { date, amount, conversion }) => {
+            const dateKey = date.split('T')[0];
+            let amountToBeAdded;
+            if (conversion) {
+                amountToBeAdded = parseFloat(conversion.converted_amount);
+            } else {
+                amountToBeAdded = parseFloat(amount);
+            }
+            dataSet[dateKey] = (dataSet[dateKey] || 0) + amountToBeAdded;
             return dataSet;
         }, { ...dataSetTemplate });
 

@@ -5,21 +5,24 @@ import { User } from '../../Types/User';
 import Nav from '../../Components/Nav/Nav';
 
 const Master = () => {
-    const [showNav, setShowNav] = useState(true);
+    const [showNav, setShowNav] = useState<boolean>(true);
+    const [fixedNav, setFixedNav] = useState<boolean>(false);
     const [lastScrollY, setLastScrollY] = useState(0);
     const [user, setUser] = useState<User | null>();
-    const [loading, setLoading] = useState<Boolean>(false);
+    const [loading, setLoading] = useState<boolean>(false);
     const location = useLocation();
     const { pathname } = location;
 
 
     const controlNav = () => {
-        if (window.scrollY > lastScrollY) {
-            setShowNav(false);
-        } else {
-            setShowNav(true);
+        if (fixedNav) {
+            if (window.scrollY > lastScrollY) {
+                setShowNav(false);
+            } else {
+                setShowNav(true);
+            }
+            setLastScrollY(window.scrollY);
         }
-        setLastScrollY(window.scrollY);
     };
 
     useEffect(() => {
@@ -61,13 +64,13 @@ const Master = () => {
         <>
             {
                 user && user.email_verified_at && (
-                    <Nav user={user} showNav={showNav} />
+                    <Nav user={user} showNav={showNav} fixedNav={fixedNav} />
                 )
             }
 
-            <div className={`xl:px-36 px-4 pb-20 ${user && user.email_verified_at && "mt-40"}`}>
+            <div className={`xl:px-24 md:px-10 px-4 pb-20 ${user && user.email_verified_at && "mt-40"}`}>
                 {user && !loading && (
-                    <Outlet context={{showNav}} />
+                    <Outlet context={{ showNav, fixedNav }} />
                 )}
             </div>
         </>

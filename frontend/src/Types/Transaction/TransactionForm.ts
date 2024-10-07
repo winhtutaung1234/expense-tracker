@@ -5,6 +5,7 @@ type TransactionForm = {
     amount: string;
     currency_id: number;
     description: string;
+    date: string;
 }
 
 export default TransactionForm;

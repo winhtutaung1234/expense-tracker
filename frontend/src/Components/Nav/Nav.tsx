@@ -5,10 +5,10 @@ import { Modal } from '../Modal';
 import Auth from '../../Services/Auth';
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faArrowRightArrowLeft, faCoins } from '@fortawesome/free-solid-svg-icons';
+import { faArrowRightArrowLeft, faBars, faCoins, faHamburger } from '@fortawesome/free-solid-svg-icons';
 
 const Nav = (props: NavProps) => {
-    const { user, showNav } = props;
+    const { user, showNav, fixedNav } = props;
     const [dropdownAnimation, setDropdownAnimation] = useState<Boolean>(false);
     const [showLogoutModal, setShowLogoutModal] = useState(false);
     const navigate = useNavigate();
@@ -72,7 +72,7 @@ const Nav = (props: NavProps) => {
 
     return (
         <>
-            <nav className={`flex fixed items-center justify-between top-10 left-1/2 -translate-x-1/2 w-[80%] py-4 ps-8 pe-14 rounded-full transition-all duration-300 z-[999] ${showNav ? "animate-openNav" : "animate-closeNav"}`}>
+            <nav className={`flex ${fixedNav ? "fixed" : "absolute"} items-center justify-between top-10 left-1/2 -translate-x-1/2 xl:w-[85%] md:w-[90%] w-[95%] py-4 ps-8 pe-14 rounded-full transition-all duration-300 z-[999] ${showNav ? "animate-openNav" : "animate-closeNav"}`}>
                 <div className='flex z-20'>
                     <img width={60} src={Logo} />
                     <div className='flex flex-col items-center'>
@@ -80,7 +80,8 @@ const Nav = (props: NavProps) => {
                         <p className='font-arsenal text-[8px] dark:text-white'>Free yourself Financially</p>
                     </div>
                 </div>
-                <div className='flex flex-[0.7] justify-between z-20 dark:text-white'>
+                <FontAwesomeIcon icon={faBars} className='text-white z-20 hidden max-lg:inline text-[20px]' />
+                <div className='flex flex-[0.7] justify-between z-20 dark:text-white max-lg:hidden'>
                     <NavLink to={"/"}>Dashboard</NavLink>
                     <NavLink to="/transactions">
                         <FontAwesomeIcon icon={faArrowRightArrowLeft} className='me-2' />

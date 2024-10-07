@@ -29,8 +29,13 @@ body {
     box-sizing: border-box;
 }
 
-.scrollBar::-webkit-scrollbar {
+.scrollBarWidth6::-webkit-scrollbar {
     width: 6px;
+    opacity: 0.5;
+}
+
+.scrollBarWidth3::-webkit-scrollbar {
+    width: 3px;
 }
 
 .scrollBar::-webkit-scrollbar-track {
@@ -44,4 +49,14 @@ body {
 
 .scrollBar::-webkit-scrollbar-thumb:hover {
     background: darkgoldenrod;
+}
+
+input[type='date']::-webkit-calendar-picker-indicator {
+    filter: invert(100%);
+    margin-right: .6rem;
+}
+
+input[type='date']::placeholder {
+    color: white;
+    opacity: 0.5;
 }

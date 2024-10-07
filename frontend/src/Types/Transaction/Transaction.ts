@@ -12,9 +12,14 @@ type Transaction = {
     currency_id: number;
     currency: Omit<Currency, "id" | "name" | "created_at" | "updated_at">
     description: string;
-    exchange_rate: string;
+    date: string;
+    conversion: {
+        converted_amount: string;
+        converted_currency_id: number;
+        exchange_rate: string;
+    }
     created_at: string;
     updated_at: string;
 }
-
+ 
 export default Transaction;

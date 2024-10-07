@@ -7,7 +7,7 @@ import Guest from "./Layout/Guest/Guest"
 import { EmailVerification } from "./Pages/Auth/Email"
 import EmailVerified from "./Pages/Auth/Email/EmailVerified"
 import { Account } from "./Pages/Account"
-import { Transaction } from "./Pages/Transaction"
+import { NewTransaction, Transaction } from "./Pages/Transaction"
 
 
 function App() {
@@ -31,6 +31,8 @@ function App() {
           <Route path="/accounts" element={<Account />} />
 
           <Route path="/transactions" element={<Transaction />} />
+
+          <Route path="/transaction" element={<NewTransaction />} />
         </Route>
       </Routes>
     </BrowserRouter>
