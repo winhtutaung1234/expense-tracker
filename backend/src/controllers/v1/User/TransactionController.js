@@ -3,7 +3,6 @@ require("dotenv").config();
 const asyncHandler = require("express-async-handler");
 const TransactionService = require("../../../services/v1/TransactionService");
 const TransactionResource = require("../../../resources/TransactionResource");
-const errResponse = require("../../../utils/error/errResponse");
 
 module.exports = {
   findAll: asyncHandler(async (req, res) => {

@@ -1,6 +1,5 @@
 const errResponse = require("../error/errResponse");
 const { updateAccountBalance, getAccountbalance } = require("./accountBalance");
-const { Transfer } = require("../../models");
 
 async function performTransaction({
   transactionType,
