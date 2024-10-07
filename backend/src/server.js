@@ -14,7 +14,7 @@ server.use(express.json());
 server.use(cookieParser());
 server.use(
   cors({
-    origin: "http://localhost:3000",
+    origin: ["http://localhost:3000", "https://nx85qwsd-3000.inc1.devtunnels.ms"],
     credentials: true,
   })
 );
