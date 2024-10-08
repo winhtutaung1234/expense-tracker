@@ -27,7 +27,7 @@ const authorization = (permission) => {
         );
       }
     } catch (err) {
-      throw errResponse(err.message);
+      next(err);
     }
   };
 };

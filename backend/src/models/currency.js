@@ -32,6 +32,7 @@ module.exports = (sequelize, DataTypes) => {
       symbol: DataTypes.STRING,
       symbol_position: DataTypes.ENUM("before", "after"),
       decimal_places: DataTypes.TINYINT.UNSIGNED,
+      image: DataTypes.STRING,
     },
     {
       sequelize,

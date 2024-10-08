@@ -28,6 +28,7 @@ module.exports = {
         name: "Kyaw Gyi",
         email: "kyaw@gmail.com",
         password: await bcrypt.hash("password", 10),
+        email_verified_at: new Date(),
         created_at: new Date(),
         updated_at: new Date(),
       },

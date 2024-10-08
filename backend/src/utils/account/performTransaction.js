@@ -26,7 +26,11 @@ async function performTransaction({
 }
 
 async function performIncome({ accountId, accountBalance, amount }) {
+  console.log("account balance: ", accountBalance);
   accountBalance += amount;
+
+  console.log("accounb blaance from perform: ", accountBalance);
+
   await updateAccountBalance(accountId, accountBalance);
   return true;
 }

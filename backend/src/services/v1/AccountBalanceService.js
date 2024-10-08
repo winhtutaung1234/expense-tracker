@@ -10,6 +10,7 @@ const {
 const {
   getAccountbalance,
   getAccountBalanceForUpdate,
+  getOriginalBalance,
 } = require("../../utils/account/accountBalance");
 const errResponse = require("../../utils/error/errResponse");
 
@@ -44,10 +45,7 @@ class AccountBalanceService {
       throw errResponse("Transaction not found", 404, "transaction");
     }
 
-    const accountBalance = await getAccountBalanceForUpdate(
-      account_id,
-      transaction_id
-    );
+    const accountBalance = await getOriginalBalance(account_id, transaction_id);
 
     const amount = await getFormattedBalance(convertedAmount);
 

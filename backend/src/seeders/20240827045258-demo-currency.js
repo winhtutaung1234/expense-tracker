@@ -18,7 +18,7 @@ module.exports = {
         code: "EUR",
         symbol: "€",
         decimal_places: 2,
-        symbol_position: "before", // or "after" depending on preference
+        symbol_position: "before",
         created_at: new Date(),
         updated_at: new Date(),
       },

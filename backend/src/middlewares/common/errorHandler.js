@@ -1,5 +1,5 @@
 function errorHandler(err, req, res, next) {
-  console.log(err.stack);
+  console.log(err);
 
   const response = {
     errors: [],
@@ -7,6 +7,10 @@ function errorHandler(err, req, res, next) {
 
   if (!err) {
     response.errors.push({ msg: "Unknown error occur" });
+  } else if (Array.isArray(err)) {
+    err.forEach((e) => {
+      response.errors.push({ msg: e.message, field: e.field });
+    });
   } else {
     response.errors.push({ msg: err.message, field: err.field });
   }

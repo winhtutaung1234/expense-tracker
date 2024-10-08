@@ -14,7 +14,12 @@ router
   .get("/", readTransactionMiddleware, TransactionController.findAll)
   .get("/:id", TransactionController.show)
   .post("/", createTransactionMiddleware, TransactionController.create)
-  .put("/:id", updateTransactionMiddleware, TransactionController.update)
+  .put(
+    "/:id",
+    isOwner("transaction"),
+    updateTransactionMiddleware,
+    TransactionController.update
+  )
   .delete(
     "/:id",
     isOwner("transaction"),

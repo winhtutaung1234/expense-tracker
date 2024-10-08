@@ -96,7 +96,40 @@ async function getTransactionWithAssociation(transactionId, t) {
   return transaction;
 }
 
+async function handleCurrencyConversion({
+  transactionData,
+  conversionData,
+  t,
+}) {
+  const { converted_amount, exchange_rate, converted_currency_id } =
+    conversionData;
+
+  const { transaction_id, transaction_conversion_id } = transactionData;
+
+  if (transaction_conversion_id) {
+    await TransactionConversion.update(
+      {
+        converted_amount,
+        exchange_rate,
+        converted_currency_id,
+      },
+      {
+        where: { transaction_id: transaction_id },
+        transaction: t,
+      }
+    );
+  } else {
+    await TransactionConversion.create({
+      transaction_id,
+      converted_amount,
+      exchange_rate,
+      converted_currency_id,
+    });
+  }
+}
+
 module.exports = {
   getTransactionWithAssociation,
   getTransactionsWithAssociation,
+  handleCurrencyConversion,
 };

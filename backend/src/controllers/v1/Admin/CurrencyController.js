@@ -1,20 +1,24 @@
+require("dotenv").config();
+
 const asyncHandler = require("express-async-handler");
-const { Currency } = require("../../../models");
+const CurrencyService = require("../../../services/v1/CurrencyService");
 
 module.exports = {
   findAll: asyncHandler(async (req, res) => {
-    const currencies = await Currency.findAll();
+    const currencies = await CurrencyService.getAllCurrencies();
     return res.json(currencies);
   }),
 
   create: asyncHandler(async (req, res) => {
     const { name, code, symbol, decimal_places } = req.body;
+    const { filename } = req.file;
 
-    const currency = await Currency.create({
+    const currency = await CurrencyService.createCurrency({
       name,
       code,
       symbol,
       decimal_places,
+      image: filename,
     });
 
     return res.status(201).json(currency);
@@ -23,38 +27,32 @@ module.exports = {
   update: asyncHandler(async (req, res) => {
     const { id } = req.params;
     const { name, code, symbol, decimal_places } = req.body;
+    const image = req.file?.filename;
 
-    const currency = await Currency.findOne({ where: { id } });
-
-    if (!currency) {
-      return res.status(404).json({ msg: "Currency not found" });
-    }
-
-    await currency.update({
+    const currency = await CurrencyService.updateCurrency(id, {
       name,
       code,
       symbol,
       decimal_places,
+      image,
     });
 
-    return res.status(200).json({
-      msg: "Currency updated successfully",
-    });
+    if (currency) {
+      return res.json(currency);
+    } else {
+      return res.status(400).json({ msg: "Failed to update currency" });
+    }
   }),
 
   delete: asyncHandler(async (req, res) => {
     const { id } = req.params;
 
-    const currency = await Currency.findOne({ where: { id } });
+    const result = await CurrencyService.deleteCurrency(id);
 
-    if (!currency) {
-      return res.status(404).json({
-        msg: "Currency not found",
-      });
+    if (result) {
+      return res.json({ msg: "Currency deleted successfully" });
+    } else {
+      return res.status(400).json({ msg: "Failed to delete currency" });
     }
-
-    await currency.destroy();
-
-    return res.sendStatus(204);
   }),
 };

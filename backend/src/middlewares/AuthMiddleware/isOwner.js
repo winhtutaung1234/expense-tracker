@@ -11,9 +11,7 @@ function isOwner(type) {
       const userExists = await User.findByPk(user.id);
 
       if (!userExists) {
-        return res.status(404).json({
-          msg: `User with id ${id} not found`,
-        });
+        throw errResponse("User not found", 404, "user");
       }
 
       if (type === "account") {

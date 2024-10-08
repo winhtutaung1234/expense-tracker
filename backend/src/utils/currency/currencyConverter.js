@@ -17,10 +17,19 @@ async function getExchangeRateAndConvertedAmount({
   const res = await fetch(api);
   const data = await res.json();
 
+  console.log(
+    "converted amount from exhcange reate converter: ",
+    data.conversion_result
+  );
+
+  console.log("account decimal places", accountCurrencyDecimalPlaces);
+
   const exchange_rate = data.conversion_rate.toFixed(5);
   const convertedAmount = data.conversion_result.toFixed(
     accountCurrencyDecimalPlaces
   );
+
+  console.log("converted amount with toFixed: ", convertedAmount);
 
   return { exchange_rate, convertedAmount };
 }
@@ -51,7 +60,7 @@ async function getInvalidCurrencyAmountForNonDecimal(
 
 async function currencyConverter({
   accountCurrency, // account.Currency
-  transactionCurrency, // currencys
+  transactionCurrency, // currency
   amount,
 }) {
   let convertedCurrencyId = accountCurrency.id;
@@ -64,13 +73,18 @@ async function currencyConverter({
       amount,
     });
 
+  console.log("converted amount from exchange rate api: ", convertedAmount);
+
   if (!accountCurrency.decimal_places) {
     const invalidCurrencyAmount = await getInvalidCurrencyAmountForNonDecimal(
       accountCurrency.id,
       convertedAmount
     );
 
-    console.log("invalid currency amount: ", invalidCurrencyAmount);
+    console.log(
+      "the result of conversion: ",
+      convertedAmount - invalidCurrencyAmount
+    );
 
     return {
       exchange_rate,

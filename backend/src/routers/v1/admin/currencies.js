@@ -7,14 +7,25 @@ const {
 } = require("../../../middlewares/CurrencyMiddleware");
 
 const CurrencyController = require("../../../controllers/v1/Admin/CurrencyController");
+const upload = require("../../../utils/upload/fileUpload");
 
 const router = express.Router();
 
 router.get("/", CurrencyController.findAll);
 
-router.post("/", createCurrencyMiddleware, CurrencyController.create);
+router.post(
+  "/",
+  upload.single("currency_image"),
+  createCurrencyMiddleware,
+  CurrencyController.create
+);
 
-router.put("/:id", updateCurrencyMiddleware, CurrencyController.update);
+router.put(
+  "/:id",
+  upload.single("currency_image"),
+  updateCurrencyMiddleware,
+  CurrencyController.update
+);
 
 router.delete("/:id", deleteCurrencyMiddleware, CurrencyController.delete);
 

@@ -14,10 +14,15 @@ server.use(express.json());
 server.use(cookieParser());
 server.use(
   cors({
-    origin: ["http://localhost:3000", "https://nx85qwsd-3000.inc1.devtunnels.ms"],
+    origin: [
+      "http://localhost:3000",
+      "https://nx85qwsd-3000.inc1.devtunnels.ms",
+    ],
     credentials: true,
   })
 );
+
+server.use("/static", express.static("src/public"));
 
 server.use("/api/v1", apiV1Routers);
 

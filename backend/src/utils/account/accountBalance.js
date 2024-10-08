@@ -52,14 +52,8 @@ async function getOriginalBalance(accountId, transactionId) {
   return originalBalance;
 }
 
-async function getAccountBalanceForUpdate(accountId, transaction_id) {
-  const accountBalance = await getOriginalBalance(accountId, transaction_id);
-  return accountBalance;
-}
-
 module.exports = {
   updateAccountBalance,
   getAccountbalance,
-  getAccountBalanceForUpdate,
   getOriginalBalance,
 };

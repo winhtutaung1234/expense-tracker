@@ -16,7 +16,6 @@ module.exports = {
     if (!user) {
       throw errResponse("User not found", 404, "user");
     }
-    console.log("user form verify controller: ", user);
 
     const result = await EmailService.EmailVerify({ user, token });
 

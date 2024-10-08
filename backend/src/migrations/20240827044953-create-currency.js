@@ -31,6 +31,10 @@ module.exports = {
         allowNull: false,
         type: Sequelize.TINYINT.UNSIGNED,
       },
+      image: {
+        unique: true,
+        type: Sequelize.STRING,
+      },
       created_at: {
         allowNull: false,
         type: Sequelize.DATE,

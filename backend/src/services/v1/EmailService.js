@@ -27,7 +27,6 @@ class EmailService {
   }
 
   async EmailVerify({ user, token }) {
-    console.log("user id from email verify: ", user);
     const emailVerifyToken = await validateEmailVerificationToken(
       user.id,
       token

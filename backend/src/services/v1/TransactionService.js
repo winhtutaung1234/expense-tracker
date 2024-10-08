@@ -15,8 +15,9 @@ const AccountBalanceService = require("./AccountBalanceService");
 const {
   getTransactionsWithAssociation,
   getTransactionWithAssociation,
+  handleCurrencyConversion,
 } = require("../../utils/transaction/transactionUtils");
-const { errorHandler } = require("../../middlewares/common/errorHandler");
+
 const { getOriginalBalance } = require("../../utils/account/accountBalance");
 
 class TransactionService {
@@ -109,14 +110,10 @@ class TransactionService {
           transaction_type,
         });
 
-        console.log("createdTransaction Id: ", createdTransaction.id);
-
         const transaction = await getTransactionWithAssociation(
           createdTransaction.id,
           t
         );
-
-        console.log("transaction from create : ", transaction);
 
         return transaction;
       });
@@ -141,7 +138,10 @@ class TransactionService {
       return await sequelize.transaction(async (t) => {
         // Fetch the transaction with related account
         const transaction = await Transaction.findByPk(id, {
-          include: [{ model: Account, attributes: ["id", "user_id"] }],
+          include: [
+            { model: Account, attributes: ["id", "user_id"] },
+            { model: TransactionConversion, attributes: ["id"] },
+          ],
           transaction: t,
         });
 
@@ -150,10 +150,7 @@ class TransactionService {
         }
 
         // Check authorization
-        if (
-          transaction.Account.id.toString() !== account_id.toString() ||
-          transaction.Account.user_id !== userId
-        ) {
+        if (transaction.Account.id.toString() !== account_id.toString()) {
           throw errResponse(
             "Unauthorized to update transaction",
             403,
@@ -197,20 +194,22 @@ class TransactionService {
             transaction: t,
           });
 
-          // Update TransactionConversion with the transaction
-          await TransactionConversion.update(
-            {
-              converted_amount: convertedAmount,
-              exchange_rate,
-              converted_currency_id: convertedCurrencyId,
-            },
-            {
-              where: { transaction_id: transaction.id },
-              transaction: t,
-            }
-          );
+          const transactionData = {
+            transaction_id: transaction.id,
+            transaction_conversion_id: transaction.TransactionConversion
+              ? transaction.TransactionConversion.id
+              : null,
+          };
+
+          const conversionData = {
+            converted_amount: convertedAmount,
+            exchange_rate,
+            converted_currency_id: convertedCurrencyId,
+          };
+
+          // it will update the transaction conversion if transaction has it. If not create a new conversion record.
+          await handleCurrencyConversion({ transactionData, conversionData });
         } else {
-          // No conversion needed, but still update account balance within the transaction
           await AccountBalanceService.updateTransactionToAccountBalance({
             account_id,
             transfer_account_id,
@@ -219,6 +218,10 @@ class TransactionService {
             transaction_id: transaction.id,
             transaction: t,
           });
+
+          if (transaction.TransactionConversion) {
+            await transaction.TransactionConversion.destroy();
+          }
         }
 
         // Update the transaction,
@@ -237,7 +240,8 @@ class TransactionService {
 
         // Fetch the updated transaction with associations
         const updatedTransaction = await getTransactionWithAssociation(
-          transaction.id
+          transaction.id,
+          t
         );
 
         return updatedTransaction;
