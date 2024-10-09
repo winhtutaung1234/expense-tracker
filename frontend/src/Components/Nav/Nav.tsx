@@ -72,7 +72,7 @@ const Nav = (props: NavProps) => {
 
     return (
         <>
-            <nav className={`flex ${fixedNav ? "fixed" : "absolute"} items-center justify-between top-10 left-1/2 -translate-x-1/2 xl:w-[85%] md:w-[90%] w-[95%] py-4 ps-8 pe-14 rounded-full transition-all duration-300 z-[999] ${showNav ? "animate-openNav" : "animate-closeNav"}`}>
+            <nav className={`flex ${fixedNav ? "fixed" : "absolute"} items-center justify-between top-10 left-1/2 -translate-x-1/2 xl:w-[85%] md:w-[90%] w-[95%] py-4 ps-8 pe-14 rounded-full transition-all duration-300 z-[20] ${showNav ? "animate-openNav" : "animate-closeNav"}`}>
                 <div className='flex z-20'>
                     <img width={60} src={Logo} />
                     <div className='flex flex-col items-center'>

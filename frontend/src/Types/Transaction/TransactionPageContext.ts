@@ -16,6 +16,8 @@ type TransactionPageContext = {
     setAllCurrencies: React.Dispatch<React.SetStateAction<Currency[]>>,
     allCategories: Category[],
     setAllCategories: React.Dispatch<React.SetStateAction<Category[]>>,
+    selectedAccount: Account | null,
+    setSelectedAccount: React.Dispatch<React.SetStateAction<Account | null>>,
     updateTransactionForm: (newData: Partial<Transaction>) => void;
 }
 

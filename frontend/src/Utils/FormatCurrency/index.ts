@@ -1,6 +1,6 @@
 import FormatDecimal from "../FormatDecimal";
 
-const formatCurrency = (balance: string | number, symbol: string = "", symbolPosition: "before" | "after", decimalPlace: number = 2): string => {
+const formatCurrency = (balance: string | number, symbol: string = "", symbolPosition: "before" | "after" = "before", decimalPlace: number = 2): string => {
     const formattedBalance = FormatDecimal(balance, decimalPlace);
 
     // Format the integer part with commas

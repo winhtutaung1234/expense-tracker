@@ -84,21 +84,13 @@ export default {
           '100%': { opacity: 0, zIndex: -1 }
         },
         openForm: {
-          "0%": { opacity: 0, transform: "translateX(-100%)", width: "0%" },
-          "100%": { opacity: 1, transform: "translateX(0)", width: "30%" }
+          "0%": { opacity: 0, transform: "translateX(-50%)" },
+          '100%': { opacity: 1, transform: "translateX(0%)" },
         },
         closeForm: {
-          "0%": { opacity: 1 },
-          "100%": { opacity: 0, transform: "translateX(-100%)", display: "none", width: "0%" }
-        },
-        expandTransaction: {
-          "0%": { width: "65%" },
-          "100%": { width: "100%" },
-        },
-        retractTransaction: {
-          "0%": { width: "100%" },
-          "100%": { width: "65%" },
-        },
+          '0%': { opacity: 1 },
+          "100%": { opacity: 0, transform: "translateX(-50%)", display: "none" }
+        }
       },
       animation: {
         opacityAppear: 'opacityAppear 2s ease-in-out forwards',
@@ -111,10 +103,8 @@ export default {
         closeNav: "closeNav .25s ease-in-out forwards",
         openBalance: "openBalance .25s ease-in-out forwards",
         closeBalance: "closeBalance .25s ease-in-out forwards",
-        openForm: "openForm .25s ease-in-out forwards",
         closeForm: "closeForm .25s ease-in-out forwards",
-        expandTransaction: "expandTransaction .2s ease-in-out forwards",
-        retractTransaction: "retractTransaction .2s ease-in-out forwards",
+        openForm: "openForm .25s ease-in-out forwards",
       },
     },
   },

@@ -19,7 +19,7 @@ import Error from '../../Components/Errors';
 import Validator from '../../Validator';
 import LineChart from '../../Components/Chart/LineChart';
 import Logo from '../../Assets/Logo';
-import { getChartData } from './getTransactionChartData';
+import { getChartData, parseDate } from './getTransactionChartData';
 import { Data } from '../../Types/Props/LineChart';
 import { Select } from '../../Components/Select';
 import { faArrowLeft } from '@fortawesome/free-solid-svg-icons/faArrowLeft';
@@ -30,7 +30,7 @@ import TransactionChart from './TransactionChart';
 
 export type DefaultTransactionFormParameter = {
   firstTimeRender?: boolean;
-  data?: TransactionType | null;
+  data?: Partial<TransactionType> | null;
 };
 
 export const TransactionPageContext = createContext<TransactionPageContextType | null>(null);
@@ -47,7 +47,7 @@ const NewTransaction = () => {
   const [transactionFormData, setTransactionFormData] = useState<TransactionFormType>(createTransactionForm({ firstTimeRender: true }));
 
   //Form State
-  const [showForm, setShowForm] = useState<boolean>(true);
+  const [showForm, setShowForm] = useState<boolean | undefined>();
 
   //Error
   const [transactionFormDataError, setTransactionFormDataError] = useState<Partial<Record<keyof TransactionFormType, string[]>>>();
@@ -63,6 +63,7 @@ const NewTransaction = () => {
   const [selectedEditID, setSelectedEditID] = useState<string | number | null>(null);
 
   //Selected Account Transactions + Account Balance
+  const [selectedAccount, setSelectedAccount] = useState<AccountType | null>(null);
   const [selectedAccountTransactions, setSelectedAccountTransactions] = useState<TransactionType[]>([]);
   const [selectedAccountBalance, setSelectedAccountBalance] = useState<string | null>(null);
 
@@ -73,12 +74,13 @@ const NewTransaction = () => {
       .then((data) => {
         if (data) {
           setAllAccounts(data);
-          if (!transactionFormData.account_id) {
-            updateTransactionForm({ account_id: data[0].id, currency_id: data[0].currency_id })
+          if (!selectedAccount) {
+            setSelectedAccount(data[0]);
+            updateTransactionForm({ currency_id: data[0].currency_id })
           } else {
-            const selectedAccount = data.find(account => account.id == transactionFormData.account_id);
-            if (selectedAccount) {
-              updateTransactionForm({ currency_id: selectedAccount.currency_id });
+            const foundAccount = data.find(account => account.id == selectedAccount?.id);
+            if (foundAccount) {
+              updateTransactionForm({ currency_id: foundAccount.currency_id });
             }
           }
         }
@@ -104,25 +106,18 @@ const NewTransaction = () => {
       .catch(() => {
       })
 
-    if (transactionFormData.account_id) {
-      TransactionService.getTransactionsByAccount(transactionFormData.account_id)
-        .then((data) => {
-          setSelectedAccountTransactions(data);
-        })
-        .catch(() => {
-        })
-    }
-
     return cleanupOnUnmount
   }, [])
 
   useEffect(() => {
-    if (transactionFormData.account_id) {
-      AccountService.getAccount(transactionFormData.account_id)
+    if (selectedAccount) {
+      updateTransactionForm({ account_id: selectedAccount.id })
+
+      AccountService.getAccount(selectedAccount.id)
         .then((data) => {
-          setAllAccounts(prevData => (prevData.map(account => account.id == transactionFormData.account_id ? data : account)))
+          setAllAccounts(prevData => (prevData.map(account => account.id == selectedAccount.id ? data : account)))
           updateTransactionForm({ currency_id: data.currency_id });
-          TransactionService.getTransactionsByAccount(transactionFormData.account_id)
+          TransactionService.getTransactionsByAccount(selectedAccount.id)
             .then((data) => {
               setSelectedAccountTransactions(data);
             })
@@ -132,21 +127,34 @@ const NewTransaction = () => {
         .catch(() => {
         })
     }
-  }, [transactionFormData.account_id])
+  }, [selectedAccount])
 
   useEffect(() => {
-    let selectedAccount;
-    if (transactionFormData.account_id && allAccounts.length > 0) {
-      selectedAccount = allAccounts.find(account => account.id == transactionFormData.account_id);
-    } else if (!transactionFormData.account_id && allAccounts.length > 0) {
-      selectedAccount = allAccounts[0];
+    let foundAccount;
+    if (selectedAccount && allAccounts.length > 0) {
+      foundAccount = allAccounts.find(account => account.id == selectedAccount.id);
+    } else if (!selectedAccount && allAccounts.length > 0) {
+      foundAccount = allAccounts[0];
     }
 
-    if (selectedAccount) {
-      const accountBalance = formatCurrency(selectedAccount.balance, "", selectedAccount.currency.symbol_position, selectedAccount.currency.decimal_places);
-      setSelectedAccountBalance(`${accountBalance} ${selectedAccount.currency.code}`)
+    if (foundAccount) {
+      const accountBalance = formatCurrency(foundAccount.balance, "", foundAccount.currency.symbol_position, foundAccount.currency.decimal_places);
+      setSelectedAccountBalance(`${accountBalance} ${foundAccount.currency.code}`)
     }
   }, [allAccounts])
+
+  /* Start of Edit Transaction */
+  const handleEditClick = (id: number | string) => {
+    setSelectedEditID(id);
+    TransactionService.getTransaction(id)
+      .then((data) => {
+        setTransactionFormData(createTransactionForm({ data: { ...data, date: parseDate(data.date) } }))
+        setShowForm(true);
+      })
+      .catch(() => {
+      })
+  }
+  /* End of Edit Transaction */
 
   /* Start of Delete Transaction */
   const handleDeleteAccountClick = (id: number) => {
@@ -251,8 +259,12 @@ const NewTransaction = () => {
       setAllCurrencies,
       allCategories,
       setAllCategories,
+      selectedAccount,
+      setSelectedAccount,
       updateTransactionForm
     }}>
+      {showWarningModal && <Modal onConfirm={confirmDelete} onClose={rejectDelete} type='warning' confirmButtonText='Delete' text='Are you sure you want to delete this Transaction?' />}
+
       <div className={`text-white min-h-[200vh]`}>
         <div className={`z-10 sticky transition-al ${showNav ? (fixedNav ? "top-40" : "top-10") : "top-10"}`}>
           <div className='flex flex-wrap justify-between py-2 px-4 l shadow-md rounded-xl' style={{ background: "rgba(255,255,255,0.1)", backdropFilter: "blur(5px)", border: "1px solid rgba(253,228,96,0.5)", borderRight: "1px solid rgba(253,228,96,0.2)", borderTop: "1px solid rgba(253,228,96,0.2)" }}>
@@ -268,7 +280,7 @@ const NewTransaction = () => {
               <select
                 name='account_id'
                 value={transactionFormData.account_id}
-                onChange={(e) => updateTransactionForm({ [e.target.name]: e.target.value })}
+                onChange={(e) => setSelectedAccount(findAccount(Number(e.target.value)))}
                 className='bg-light-yellow text-black py-1 px-2 rounded-md'>
                 {allAccounts && allAccounts.length > 0 && allAccounts.map(account => (
                   <option key={account.id} value={account.id}>{account.name}</option>
@@ -278,7 +290,86 @@ const NewTransaction = () => {
           </div>
         </div>
         <TransactionChart />
-
+        <hr className='my-8 opacity-50' />
+        <div className='flex gap-6 max-lg:flex-col min-h-[200vh]'>
+          <TransactionForm
+            showForm={showForm}
+            setShowForm={setShowForm}
+            createTransactionForm={createTransactionForm}
+            resetErrorWithTimeout={resetErrorWithTimeout}
+            validateTransactionForm={validateTransactionForm}
+            transactionFormDataError={transactionFormDataError}
+            setTransactionFormDataError={setTransactionFormDataError}
+          />
+          <div className={`${showForm ? "w-[70%]" : showForm != undefined ? "w-[100%]" : "w-[70%]"} transition-all`}>
+            <div className='flex justify-between items-center mb-6'>
+              <p className='font-inter text-[28px] font-light tracking-wide'>Transactions History</p>
+              <button className='bg-login-button text-black py-2 px-5 rounded-lg shadow-md font-montserrat' onClick={() => setShowForm(prevData => !prevData)}>Add New Transaction</button>
+            </div>
+            <Table<TransactionType>
+              dataSource={selectedAccountTransactions}
+            >
+              <Column
+                title="Balance"
+                dataIndex="amount"
+                className='whitespace-nowrap'
+                render={(value: TransactionType["amount"], data: TransactionType) => {
+                  let modifiedBalance = formatCurrency(value, data.currency.symbol, data.currency.symbol_position, data.currency.decimal_places);
+                  let isIncome = data.transaction_type === "income";
+                  return (
+                    <p className={`${isIncome ? "text-light-green" : "text-light-red"}`}>
+                      {isIncome ? "+" : "-"} {modifiedBalance}
+                    </p>
+                  );
+                }}
+              />
+              <Column
+                title='Exchange Rate'
+                dataIndex="conversion"
+                render={(value: TransactionType["conversion"]) => {
+                  return value ? value.exchange_rate : "1";
+                }}
+              />
+              <Column
+                dataIndex="category"
+                title="Category"
+                render={(value: TransactionType["category"]) => (
+                  <p className='text-center rounded-md inline-block py-1 px-2 shadow-md text-[14px]' style={{ color: value.text_color, background: value.background_color }}>{value.name}</p>
+                )}
+              />
+              <Column
+                title='Date'
+                dataIndex="date"
+                className='whitespace-nowrap'
+                sort
+                render={(value: TransactionType["date"]) => {
+                  return (
+                    <p>{formatDateWithSuffix(value)}</p>
+                  );
+                }}
+              />
+              <Column
+                title="Action"
+                dataIndex="id"
+                render={(value: TransactionType["id"]) => {
+                  return (
+                    <div className='flex gap-4'>
+                      <NavLink to="/transactions" state={{ account_id: value }}>
+                        <FontAwesomeIcon icon={faEye} className='text-success text-[20px]' />
+                      </NavLink>
+                      <button onClick={() => handleEditClick(value)}>
+                        <FontAwesomeIcon icon={faEdit} className='text-primary text-[20px]' />
+                      </button>
+                      <button onClick={() => handleDeleteAccountClick(value)}>
+                        <FontAwesomeIcon icon={faTrash} className='text-danger text-[20px]' />
+                      </button>
+                    </div>
+                  )
+                }}
+              />
+            </Table>
+          </div>
+        </div>
       </div>
     </TransactionPageContext.Provider >
   )

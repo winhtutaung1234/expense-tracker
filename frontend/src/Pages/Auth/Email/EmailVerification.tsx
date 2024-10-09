@@ -76,7 +76,7 @@ const EmailVerification = () => {
                     navigate('/email-verified', { state: { hasAccess: true } });
                 })
                 .catch((error) => {
-                    console.log(error);
+                    // console.log(error);
                 });
         }
     }, [verifyEmailPayload, navigate]);
@@ -105,7 +105,7 @@ const EmailVerification = () => {
                 }, 1000);
             })
             .catch((error) => {
-                console.log(error);
+                // console.log(error);
             })
     };
 

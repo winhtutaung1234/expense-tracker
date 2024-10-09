@@ -59,29 +59,31 @@ const Table = <T,>({ children, dataSource }: TableProps<T>) => {
 
   return (
     <TableContext.Provider value={{ filteredData, setAllFilteredData, columns, sortConfig, setSortConfig }}>
-      <table className='text-left w-full'>
-        <thead>
-          <tr className='font-inter text-[18px]'>
-            {columns.length > 0 && columns.map((column, index) => (
-              <TableHeader<T> key={index} {...column} />
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          {filteredData && filteredData.length > 0 && filteredData.map((data, index) => (
-            <tr key={index} className='border-t-[1px] border-t-[rgba(255,255,255,0.5)]'>
+      <div className='overflow-x-auto'>
+        <table className='text-left w-full'>
+          <thead>
+            <tr className='font-inter text-[18px]'>
               {columns.length > 0 && columns.map((column, index) => (
-                <TableRow key={index} data={data} column={column} />
+                <TableHeader<T> key={index} {...column} />
               ))}
             </tr>
-          ))}
-          {filteredData && filteredData.length == 0 && (
-            <tr className='border-t-[1px] border-t-[rgba(255,255,255,0.5)]'>
-              <td colSpan={columns && columns.length} className='text-center pt-5'>No Data Yet</td>
-            </tr>
-          )}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {filteredData && filteredData.length > 0 && filteredData.map((data, index) => (
+              <tr key={index} className='border-t-[1px] border-t-[rgba(255,255,255,0.5)]'>
+                {columns.length > 0 && columns.map((column, index) => (
+                  <TableRow key={index} data={data} column={column} />
+                ))}
+              </tr>
+            ))}
+            {filteredData && filteredData.length === 0 && (
+              <tr className='border-t-[1px] border-t-[rgba(255,255,255,0.5)]'>
+                <td colSpan={columns && columns.length} className='text-center pt-5'>No Data Yet</td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
     </TableContext.Provider>
   );
 };
