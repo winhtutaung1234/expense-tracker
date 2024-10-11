@@ -4,14 +4,20 @@ const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
 const { RefreshToken } = require("../../models");
 
-async function generateAccessAndRefreshTokens(user, device_id) {
+async function generateAccessAndRefreshTokens(user, device_id, user_agent) {
   const accessToken = jwt.sign(
     {
-      id: user.id,
-      role_id: user.role_id,
-      name: user.name,
-      email: user.email,
-      email_verified_at: user.email_verified_at,
+      user: {
+        id: user.id,
+        role_id: user.role_id,
+        name: user.name,
+        email: user.email,
+        email_verified_at: user.email_verified_at,
+      },
+      device: {
+        id: device_id,
+        user_agent,
+      },
     },
     process.env.JWT_ACCESS_SECRET,
     { expiresIn: process.env.JWT_ACCESS_EXPIRE }

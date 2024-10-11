@@ -57,7 +57,7 @@ module.exports = {
       const deviceId = await UserService.getDeviceId(user.id, user_agent);
 
       const { accessToken, refreshToken } =
-        await generateAccessAndRefreshTokens(user, deviceId);
+        await generateAccessAndRefreshTokens(user, deviceId, user_agent);
 
       setJwtRefreshCookie(res, refreshToken);
 
@@ -80,7 +80,11 @@ module.exports = {
     try {
       const refresh = await UserService.refreshToken(jwt_refresh);
       const { accessToken, refreshToken } =
-        await generateAccessAndRefreshTokens(refresh.user, refresh.device.id);
+        await generateAccessAndRefreshTokens(
+          refresh.user,
+          refresh.device.id,
+          refresh.device.user_agent
+        );
 
       setJwtRefreshCookie(res, refreshToken);
 
