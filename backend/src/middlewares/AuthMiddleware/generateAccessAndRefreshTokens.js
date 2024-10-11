@@ -4,17 +4,7 @@ const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
 const { RefreshToken } = require("../../models");
 
-async function generateAccessAndRefreshTokens(user) {
-  // check if refresh token already exists
-  const refreshExists = await RefreshToken.findOne({
-    where: { user_id: user.id },
-  });
-
-  // if exists delete it from db
-  if (refreshExists) {
-    await RefreshToken.destroy({ where: { user_id: user.id } });
-  }
-
+async function generateAccessAndRefreshTokens(user, device_id) {
   const accessToken = jwt.sign(
     {
       id: user.id,
@@ -30,6 +20,7 @@ async function generateAccessAndRefreshTokens(user) {
   const refreshToken = jwt.sign(
     {
       id: user.id,
+      device_id,
     },
     process.env.JWT_REFRESH_SECRET,
     { expiresIn: process.env.JWT_REFRESH_EXPIRE }
@@ -44,6 +35,7 @@ async function generateAccessAndRefreshTokens(user) {
     user_id: user.id,
     token: await bcrypt.hash(refreshToken, 10),
     expires_at,
+    device_id,
   });
 
   return { accessToken, refreshToken };

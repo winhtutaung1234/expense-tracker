@@ -1,23 +1,15 @@
 require("dotenv").config();
 
 const { User } = require("../../../models");
-const { Role } = require("../../../models");
 const { RefreshToken } = require("../../../models");
 
 const asyncHandler = require("express-async-handler");
 const UserResource = require("../../../resources/UserResource");
 
-const sendEmailQueue = require("../../../queues/emailQueue");
-
 // get access and refresh tokens
 const generateAccessAndRefreshTokens = require("../../../middlewares/AuthMiddleware/generateAccessAndRefreshTokens");
-// get email verificaton link
-const generateEmailVerificationToken = require("../../../utils/auth/generateEmailVerificationToken");
-// set the refresh token to cookie with http only
 const setJwtRefreshCookie = require("../../../utils/auth/setJwtRefreshCookie");
 
-const bcrypt = require("bcrypt");
-const jwt = require("jsonwebtoken");
 const UserService = require("../../../services/v1/UserService");
 const EmailService = require("../../../services/v1/EmailService");
 const errResponse = require("../../../utils/error/errResponse");
@@ -57,12 +49,15 @@ module.exports = {
 
   login: asyncHandler(async (req, res) => {
     const { email, password } = req.body;
+    const user_agent = req.headers["user-agent"];
     const user = await UserService.login(email, password);
 
     // if user email_verified_at has date
     if (user.email_verified_at) {
+      const deviceId = await UserService.getDeviceId(user.id, user_agent);
+
       const { accessToken, refreshToken } =
-        await generateAccessAndRefreshTokens(user);
+        await generateAccessAndRefreshTokens(user, deviceId);
 
       setJwtRefreshCookie(res, refreshToken);
 
@@ -83,9 +78,9 @@ module.exports = {
     }
 
     try {
-      const user = await UserService.refreshToken(jwt_refresh);
+      const refresh = await UserService.refreshToken(jwt_refresh);
       const { accessToken, refreshToken } =
-        await generateAccessAndRefreshTokens(user);
+        await generateAccessAndRefreshTokens(refresh.user, refresh.device.id);
 
       setJwtRefreshCookie(res, refreshToken);
 

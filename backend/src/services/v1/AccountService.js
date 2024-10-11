@@ -1,65 +1,58 @@
-const { Account } = require("../../models");
-const { Currency } = require("../../models");
-const isDuplicateName = require("../../utils/account/isDuplicateName");
+const { Account, Currency, Transaction } = require("../../models");
+const AccountRepository = require("../../repositories/AccountRepository");
 const errResponse = require("../../utils/error/errResponse");
 
 class AccountService {
-  async getAllAccounts(userId) {
-    const accounts = await Account.findAll({
-      where: { user_id: userId },
-      include: Currency,
-      order: [["created_at", "DESC"]],
-    });
-
-    if (accounts.length === 0) {
-      throw errResponse("This user has no accounts", 404);
+  async getAllAccounts(user_id) {
+    try {
+      const accounts = await AccountRepository.getAllAccounts(user_id);
+      return accounts;
+    } catch (err) {
+      throw err;
     }
-
-    return accounts;
   }
 
-  async getAccount(accountId) {
-    const account = await Account.findByPk(accountId, { include: Currency });
-
-    if (!account) {
-      throw errResponse("Account not found", 404);
+  async getAccount(id) {
+    try {
+      const account = await AccountRepository.getAccountById(id);
+      return account;
+    } catch (err) {
+      throw err;
     }
-
-    return account;
   }
 
   async createAccount(userId, data) {
-    await isDuplicateName("create", { user_id: userId, name: data.name });
+    try {
+      const account = await AccountRepository.createAccount({
+        user_id: userId,
+        ...data,
+      });
 
-    const createdAccount = await Account.create({ user_id: userId, ...data });
-    const account = await Account.findByPk(createdAccount.id, {
-      include: Currency,
-    });
-
-    return account;
-  }
-
-  async updateAccount(accountId, updatedData) {
-    const account = await Account.findByPk(accountId, { include: Currency });
-
-    if (!account) {
-      throw errResponse("Account not found", 404, "account");
+      return account;
+    } catch (err) {
+      throw err;
     }
-
-    await isDuplicateName("update", {
-      user_id: updatedData.user_id,
-      name: updatedData.name,
-      accountId,
-    });
-
-    await account.update({ ...updatedData });
-
-    return account;
   }
 
-  async deleteAccount(accountId) {
-    await Account.destroy({ where: { id: accountId } });
-    return true;
+  async updateAccount(id, updatedData) {
+    try {
+      const account = await AccountRepository.updateAccount({
+        id,
+        ...updatedData,
+      });
+
+      return account;
+    } catch (err) {
+      throw err;
+    }
+  }
+
+  async destory(id) {
+    try {
+      await AccountRepository.deleteAccount(id);
+    } catch (err) {
+      throw err;
+    }
   }
 }
 

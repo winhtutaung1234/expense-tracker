@@ -21,12 +21,17 @@ module.exports = (sequelize, DataTypes) => {
         foreignKey: "user_id",
       });
 
-      User.hasOne(models.RefreshToken, {
+      User.hasMany(models.RefreshToken, {
         onDelete: "CASCADE",
         foreignKey: "user_id",
       });
 
       User.hasMany(models.Account, {
+        foreignKey: "user_id",
+        onDelete: "CASCADE",
+      });
+
+      User.hasMany(models.Device, {
         foreignKey: "user_id",
         onDelete: "CASCADE",
       });

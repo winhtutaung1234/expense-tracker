@@ -1,6 +1,5 @@
 const { Op } = require("sequelize");
 const { Account } = require("../../models");
-const errRespones = require("../error/errResponse");
 
 async function isDuplicateName(type, data) {
   let accounts;
@@ -11,15 +10,16 @@ async function isDuplicateName(type, data) {
 
   if (type === "update") {
     accounts = await Account.findAll({
-      where: { user_id: data.user_id, id: { [Op.ne]: data.accountId } },
+      where: { user_id: data.user_id, id: { [Op.ne]: data.id } },
     });
+    console.log("account from duplicate: ", accounts);
   }
 
   const isDuplicate = accounts.some((account) => account.name === data.name);
 
-  if (isDuplicate) {
-    throw errRespones("Account name cannot be duplicate", 400, "name");
-  }
+  console.log("isDuplicate: ", isDuplicate);
+
+  return isDuplicate;
 }
 
 module.exports = isDuplicateName;

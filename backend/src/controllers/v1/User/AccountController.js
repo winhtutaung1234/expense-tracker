@@ -51,7 +51,7 @@ module.exports = {
   destroy: asyncHandler(async (req, res) => {
     const { id } = req.params;
 
-    await AccountService.deleteAccount(id);
+    await AccountService.destory(id);
 
     return res.sendStatus(204);
   }),

@@ -1,7 +1,7 @@
 "use strict";
 const { Model } = require("sequelize");
 module.exports = (sequelize, DataTypes) => {
-  class RefreshToken extends Model {
+  class Device extends Model {
     /**
      * Helper method for defining associations.
      * This method is not a part of Sequelize lifecycle.
@@ -9,31 +9,35 @@ module.exports = (sequelize, DataTypes) => {
      */
     static associate(models) {
       // define association here
-      RefreshToken.belongsTo(models.User, {
+
+      Device.belongsTo(models.User, {
         foreignKey: "user_id",
         onDelete: "CASCADE",
       });
 
-      RefreshToken.belongsTo(models.Device, {
+      Device.hasOne(models.RefreshToken, {
         foreignKey: "device_id",
         onDelete: "CASCADE",
       });
     }
   }
-  RefreshToken.init(
+  Device.init(
     {
-      user_id: DataTypes.BIGINT.UNSIGNED,
-      token: DataTypes.STRING,
-      expires_at: DataTypes.DATE,
-      device_id: DataTypes.STRING,
+      user_id: DataTypes.UUID,
+      device_type: DataTypes.STRING,
+      device_brand: DataTypes.STRING,
+      device_model: DataTypes.STRING,
+      device_os: DataTypes.STRING,
+      device_os_version: DataTypes.STRING,
+      user_agent: DataTypes.STRING,
     },
     {
       sequelize,
-      modelName: "RefreshToken",
+      modelName: "Device",
       underscored: true,
       createdAt: "created_at",
       updatedAt: "updated_at",
     }
   );
-  return RefreshToken;
+  return Device;
 };

@@ -32,7 +32,6 @@ module.exports = {
         type: Sequelize.TINYINT.UNSIGNED,
       },
       image: {
-        unique: true,
         type: Sequelize.STRING,
       },
       created_at: {

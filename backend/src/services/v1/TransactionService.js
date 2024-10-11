@@ -13,22 +13,40 @@ const currencyConverter = require("../../utils/currency/currencyConverter");
 
 const AccountBalanceService = require("./AccountBalanceService");
 const {
-  getTransactionsWithAssociation,
   getTransactionWithAssociation,
   handleCurrencyConversion,
 } = require("../../utils/transaction/transactionUtils");
 
-const { getOriginalBalance } = require("../../utils/account/accountBalance");
+const TransactionRepository = require("../../repositories/TransactionRepository");
 
 class TransactionService {
   async getAllTransactions(account_id) {
-    const transactions = await getTransactionsWithAssociation(account_id);
-    return transactions;
+    try {
+      return sequelize.transaction(async (t) => {
+        const transactions = await TransactionRepository.getTransactions(
+          account_id,
+          t
+        );
+
+        return transactions;
+      });
+    } catch (err) {
+      throw err;
+    }
   }
 
   async getTransaction(id) {
-    const transaction = await getTransactionWithAssociation(id);
-    return transaction;
+    try {
+      return sequelize.transaction(async (t) => {
+        const transaction = await TransactionRepository.getTransactionById(
+          id,
+          t
+        );
+        return transaction;
+      });
+    } catch (err) {
+      throw err;
+    }
   }
 
   async createTransaction(transactionDatas) {
@@ -137,13 +155,10 @@ class TransactionService {
     try {
       return await sequelize.transaction(async (t) => {
         // Fetch the transaction with related account
-        const transaction = await Transaction.findByPk(id, {
-          include: [
-            { model: Account, attributes: ["id", "user_id"] },
-            { model: TransactionConversion, attributes: ["id"] },
-          ],
-          transaction: t,
-        });
+        const transaction = await TransactionRepository.getTransactionById(
+          id,
+          t
+        );
 
         if (!transaction) {
           throw errResponse("Transaction not found", 404);
@@ -225,7 +240,8 @@ class TransactionService {
         }
 
         // Update the transaction,
-        await transaction.update(
+        await TransactionRepository.updateTransaction(
+          id,
           {
             account_id,
             category_id,
@@ -235,15 +251,12 @@ class TransactionService {
             date: date ? new Date(date) : new Date(),
             description,
           },
-          { transaction: t }
-        );
-
-        // Fetch the updated transaction with associations
-        const updatedTransaction = await getTransactionWithAssociation(
-          transaction.id,
           t
         );
 
+        // Fetch the updated transaction with associations
+        const updatedTransaction =
+          await TransactionRepository.getTransactionById(id);
         return updatedTransaction;
       });
     } catch (err) {
@@ -254,21 +267,16 @@ class TransactionService {
   async deleteTransaction(id) {
     try {
       return await sequelize.transaction(async (t) => {
-        const transaction = await Transaction.findByPk(id, {
-          include: [
-            {
-              model: Account,
-              attributes: ["id", "balance"],
-            },
-            { model: TransactionConversion },
-          ],
-          transaction: t,
-        });
-
-        const originalBalance = await getOriginalBalance(
-          transaction.Account.id,
-          transaction.id
+        const transaction = await TransactionRepository.getTransactionById(
+          id,
+          t
         );
+
+        const originalBalance =
+          await AccountBalanceService.getOriginalAccountBalance(
+            transaction.Account.id,
+            transaction.id
+          );
 
         transaction.Account.balance = originalBalance;
 
@@ -276,7 +284,7 @@ class TransactionService {
           await transaction.TransactionConversion.destroy({ transaction: t });
         }
 
-        await transaction.destroy({ transaction: t });
+        await TransactionRepository.deleteTransaction(id);
         await transaction.Account.save({ transaction: t });
         return true;
       });

@@ -2,9 +2,9 @@ const { EmailVerificationToken } = require("../../models");
 const errRespones = require("../error/errResponse");
 const bcrpt = require("bcrypt");
 
-async function validateEmailVerificationToken(user_id, token) {
+async function validateEmailVerificationToken(user_id, token, user_agent) {
   const emailToken = await EmailVerificationToken.findOne({
-    where: { user_id },
+    where: { user_id, user_agent },
   });
 
   if (!emailToken) {

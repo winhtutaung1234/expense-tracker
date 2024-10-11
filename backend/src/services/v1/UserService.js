@@ -1,13 +1,14 @@
 require("dotenv").config();
 
-const { User } = require("../../models");
-const { Role } = require("../../models");
-const { RefreshToken } = require("../../models");
+const { User, Device, Role, RefreshToken } = require("../../models");
 const errResponse = require("../../utils/error/errResponse");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
+
+const DeviceDetector = require("node-device-detector");
 const generateAccessAndRefreshTokens = require("../../middlewares/AuthMiddleware/generateAccessAndRefreshTokens");
-const EmailService = require("./EmailService");
+const setJwtRefreshCookie = require("../../utils/auth/setJwtRefreshCookie");
+const generateUUID = require("../../utils/token/generateUUID");
 
 class UserService {
   async getAllUsers() {
@@ -72,6 +73,18 @@ class UserService {
       throw errResponse("User not found", 404, "user");
     }
 
+    const device = await Device.findOne({
+      where: { id: decoded.device_id, user_id: decoded.id },
+    });
+
+    if (!device) {
+      throw errResponse(
+        "You're trying to access a device that's not registered to your account",
+        400,
+        "device"
+      );
+    }
+
     const refresh = await RefreshToken.findOne({
       where: { user_id: decoded.id },
     });
@@ -81,7 +94,7 @@ class UserService {
     }
 
     await refresh.destroy();
-    return user;
+    return { user, device };
   }
 
   async deleteUser(userId) {
@@ -104,6 +117,80 @@ class UserService {
     await user.restore();
 
     return true;
+  }
+
+  async getDeviceId(userId, userAgent) {
+    try {
+      const devices = await this.getUserDevices(userId);
+
+      const device = await this.checkUserDevice(devices, userAgent);
+
+      let deviceId = null;
+
+      if (device) {
+        deviceId = device.id;
+
+        await RefreshToken.destroy({
+          where: { user_id: userId, device_id: deviceId },
+        });
+      } else {
+        const createdDevice = await this.createDeviceForUser(userId, userAgent);
+
+        deviceId = createdDevice.id;
+      }
+
+      return deviceId;
+    } catch (err) {
+      throw errResponse(err.message, err.status || 500, "device");
+    }
+  }
+
+  async getUserDevices(user_id) {
+    try {
+      const devices = await Device.findAll({ where: { user_id } });
+
+      return devices;
+    } catch (err) {
+      throw errResponse(err.message, err.status || 500, "device");
+    }
+  }
+
+  async checkUserDevice(devices, user_agent) {
+    try {
+      const device = devices.find((d) => d.user_agent === user_agent);
+      console.log("check user device: ", device);
+      return device;
+    } catch (err) {
+      throw errResponse(err.message, err.status || 500, "device");
+    }
+  }
+
+  async createDeviceForUser(user_id, user_agent) {
+    try {
+      const user = await User.findByPk(user_id);
+      if (!user) throw errResponse("User not found", 404, "user");
+
+      const detector = new DeviceDetector();
+
+      const deviceInfo = detector.detect(user_agent);
+
+      const uuid = generateUUID();
+
+      const device = await Device.create({
+        id: uuid,
+        user_id,
+        device_type: deviceInfo.device.type,
+        device_brand: deviceInfo.device.brand,
+        device_model: deviceInfo.device.model,
+        device_os: deviceInfo.os.name,
+        device_os_version: deviceInfo.os.version,
+        user_agent,
+      });
+
+      return device;
+    } catch (err) {
+      throw errResponse(err.message, err.status || 400, "device");
+    }
   }
 }
 

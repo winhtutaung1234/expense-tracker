@@ -16,7 +16,7 @@ const auth = asyncHandler(async (req, res, next) => {
   const { authorization } = req.headers;
 
   if (!authorization) {
-    throw errRespones("Authorization header is missing", 401);
+    throw errRespones("Authorization header is missing", 401, "auth");
   }
 
   const [type, token] = authorization.split(" ");

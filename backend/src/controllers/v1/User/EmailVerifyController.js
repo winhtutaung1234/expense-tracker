@@ -7,10 +7,13 @@ const generateAccessAndRefreshTokens = require("../../../middlewares/AuthMiddlew
 const setJwtRefreshCookie = require("../../../utils/auth/setJwtRefreshCookie");
 const EmailService = require("../../../services/v1/EmailService");
 const errResponse = require("../../../utils/error/errResponse");
+const { createDeviceForUser } = require("../../../services/v1/UserService");
+const UserService = require("../../../services/v1/UserService");
 
 module.exports = {
   emailVerify: asyncHandler(async (req, res) => {
     const { user_id, token } = req.body;
+    const user_agent = req.headers["user-agent"];
 
     const user = await User.findByPk(user_id);
     if (!user) {
@@ -22,8 +25,10 @@ module.exports = {
     if (!result) {
       throw errResponse("Email verify failed", 400, "email_verify");
     } else {
+      const device = await UserService.createDeviceForUser(user_id, user_agent);
+
       const { accessToken, refreshToken } =
-        await generateAccessAndRefreshTokens(user);
+        await generateAccessAndRefreshTokens(user, device.id);
       setJwtRefreshCookie(res, refreshToken);
 
       return res.json({
