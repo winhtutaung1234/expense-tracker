@@ -62,12 +62,14 @@ class UserService {
     try {
       decoded = jwt.verify(jwt_refresh, process.env.JWT_REFRESH_SECRET);
     } catch (err) {
+      console.log("error outside: ")
       if (err.message === "jwt expired") {
         throw errResponse("Jwt refresh expired", 401, "jwt_refresh");
       }
     }
 
     const user = await User.findByPk(decoded.id);
+
 
     if (!user) {
       throw errResponse("User not found", 404, "user");
@@ -86,13 +88,15 @@ class UserService {
     }
 
     const refresh = await RefreshToken.findOne({
-      where: { user_id: decoded.id },
+      where: { user_id: decoded.id, device_id: device.id },
     });
+
+    console.log("the unborned child: " +refresh);
 
     if (!(await bcrypt.compare(jwt_refresh, refresh.token))) {
       throw errResponse("Invalid refresh token", 400, "jwt_refresh");
     }
-
+    
     await refresh.destroy();
     return { user, device };
   }

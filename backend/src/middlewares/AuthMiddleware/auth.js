@@ -45,6 +45,8 @@ const auth = asyncHandler(async (req, res, next) => {
 
     const device = await Device.findByPk(data.device.id);
 
+
+
     if (!device) {
       throw errResponse(
         "You're trying to access a device that's not registered to your account",
@@ -52,6 +54,10 @@ const auth = asyncHandler(async (req, res, next) => {
         "device"
       );
     }
+
+    console.log("user agent: ", user_agent);
+    console.log("device user_agent: ", device.user_agent);
+    
 
     if (user_agent !== device.user_agent) {
       throw errResponse(
