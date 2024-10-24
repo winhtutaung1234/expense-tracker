@@ -1,199 +1,181 @@
 require("dotenv").config();
 
-const { User, Device, Role, RefreshToken } = require("../../models");
+const { User, Device, RefreshToken } = require("../../models");
 const errResponse = require("../../utils/error/errResponse");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 
-const DeviceDetector = require("node-device-detector");
+const generateUUID = require("../../utils/token/generateUUID");
+const UserRepository = require("../../repositories/UserRepository");
+
+const EmailService = require("./EmailService");
+
 const generateAccessAndRefreshTokens = require("../../middlewares/AuthMiddleware/generateAccessAndRefreshTokens");
 const setJwtRefreshCookie = require("../../utils/auth/setJwtRefreshCookie");
-const generateUUID = require("../../utils/token/generateUUID");
+const DeviceService = require("./DeviceService");
+const DeviceRepository = require("../../repositories/DeviceRepository");
 
 class UserService {
-  async getAllUsers() {
-    const users = await User.findAll({ include: Role });
-    return users;
+  async findUsers() {
+    try {
+      const users = await UserRepository.getAllUsers();
+      return users;
+    } catch (err) {
+      throw err;
+    }
   }
 
-  async getUser(userId) {
-    const user = await User.findByPk(userId, { include: Role });
-    return user;
+  async getUser(id) {
+    try {
+      const user = await UserRepository.getUserByIdWithAssociation(id);
+      return user;
+    } catch (err) {
+      throw err;
+    }
   }
 
   async register({ role_id, name, email, password, confirmpassword }) {
-    const userExists = await User.findOne({ where: { email } });
-
-    if (userExists) {
-      throw errResponse("User already exists", 400, "user");
-    }
-
-    if (password !== confirmpassword) {
-      throw errResponse("Passwords do not match", 400, "password");
-    }
-
-    const user = await User.create({
-      role_id: role_id ? role_id : 1,
-      name,
-      email,
-      password: await bcrypt.hash(password, 10),
-    });
-
-    return user;
-  }
-
-  async login(email, password) {
-    const user = await User.findOne({ where: { email } });
-
-    if (!user) {
-      throw errResponse("User not found", 404, "user");
-    }
-
-    if (!(await bcrypt.compare(password, user.password))) {
-      throw errResponse("Incorrect password", 400, "password");
-    }
-
-    return user;
-  }
-
-  async refreshToken(jwt_refresh) {
-    let decoded;
-
     try {
-      decoded = jwt.verify(jwt_refresh, process.env.JWT_REFRESH_SECRET);
+      const userExist = await UserRepository.getUserByEmail(email);
+
+      if (userExist) {
+        throw errResponse("User already exists", 400, "user");
+      }
+
+      if (password !== confirmpassword) {
+        throw errResponse("Passwords do not match", 400, "password");
+      }
+
+      const user = await UserRepository.createUser({
+        role_id: role_id ? role_id : 1,
+        name,
+        email,
+        password: await bcrypt.hash(password, 10),
+      });
+
+      return user;
     } catch (err) {
-      console.log("error outside: ")
+      throw err;
+    }
+  }
+
+  async login(email, password, user_agent, res) {
+    try {
+      const user = await UserRepository.getUserByEmail(email);
+
+      if (!(await bcrypt.compare(password, user.password))) {
+        throw errResponse("Incorrect password", 400, "password");
+      }
+
+      if (user.email_verified_at) {
+        const deviceId = await DeviceService.getDeviceId(user.id, user_agent);
+        const { accessToken, refreshToken } =
+          await generateAccessAndRefreshTokens(user, deviceId, user_agent);
+
+        setJwtRefreshCookie(res, refreshToken);
+
+        return accessToken;
+      } else {
+        return await EmailService.sendEmailVerificationLink(user);
+      }
+    } catch (err) {
+      throw err;
+    }
+  }
+
+  async verifyRefreshToken(refresh) {
+    try {
+      const decoded = jwt.verify(refresh, process.env.JWT_REFRESH_SECRET);
+      return decoded;
+    } catch (err) {
       if (err.message === "jwt expired") {
         throw errResponse("Jwt refresh expired", 401, "jwt_refresh");
       }
     }
+  }
 
-    const user = await User.findByPk(decoded.id);
+  async refreshToken(jwt_refresh, res) {
+    try {
+      if (!jwt_refresh)
+        throw errResponse("Jwt refresh token not found", 404, "jwt_refresh");
 
+      const decoded = await this.verifyRefreshToken(jwt_refresh);
 
-    if (!user) {
-      throw errResponse("User not found", 404, "user");
-    }
+      const user = await UserRepository.getUserById(decoded.id);
 
-    const device = await Device.findOne({
-      where: { id: decoded.device_id, user_id: decoded.id },
-    });
-
-    if (!device) {
-      throw errResponse(
-        "You're trying to access a device that's not registered to your account",
-        400,
-        "device"
+      const device = await DeviceRepository.getDeviceById(
+        decoded.device_id,
+        user.id
       );
-    }
 
-    const refresh = await RefreshToken.findOne({
-      where: { user_id: decoded.id, device_id: device.id },
-    });
-
-    console.log("the unborned child: " +refresh);
-
-    if (!(await bcrypt.compare(jwt_refresh, refresh.token))) {
-      throw errResponse("Invalid refresh token", 400, "jwt_refresh");
-    }
-    
-    await refresh.destroy();
-    return { user, device };
-  }
-
-  async deleteUser(userId) {
-    const user = await User.findByPk(userId);
-    if (!user) {
-      throw errResponse("User not found", 404, "user");
-    }
-
-    await user.destroy();
-    return true;
-  }
-
-  async restoreDelete(userId) {
-    const user = await User.findByPk(userId, { paranoid: false });
-
-    if (!user) {
-      throw errResponse("User not found", 404, "user");
-    }
-
-    await user.restore();
-
-    return true;
-  }
-
-  async getDeviceId(userId, userAgent) {
-    try {
-      const devices = await this.getUserDevices(userId);
-
-      const device = await this.checkUserDevice(devices, userAgent);
-
-      let deviceId = null;
-
-      if (device) {
-        deviceId = device.id;
-
-        await RefreshToken.destroy({
-          where: { user_id: userId, device_id: deviceId },
-        });
-      } else {
-        const createdDevice = await this.createDeviceForUser(userId, userAgent);
-
-        deviceId = createdDevice.id;
-      }
-
-      return deviceId;
-    } catch (err) {
-      throw errResponse(err.message, err.status || 500, "device");
-    }
-  }
-
-  async getUserDevices(user_id) {
-    try {
-      const devices = await Device.findAll({ where: { user_id } });
-
-      return devices;
-    } catch (err) {
-      throw errResponse(err.message, err.status || 500, "device");
-    }
-  }
-
-  async checkUserDevice(devices, user_agent) {
-    try {
-      const device = devices.find((d) => d.user_agent === user_agent);
-      console.log("check user device: ", device);
-      return device;
-    } catch (err) {
-      throw errResponse(err.message, err.status || 500, "device");
-    }
-  }
-
-  async createDeviceForUser(user_id, user_agent) {
-    try {
-      const user = await User.findByPk(user_id);
-      if (!user) throw errResponse("User not found", 404, "user");
-
-      const detector = new DeviceDetector();
-
-      const deviceInfo = detector.detect(user_agent);
-
-      const uuid = generateUUID();
-
-      const device = await Device.create({
-        id: uuid,
-        user_id,
-        device_type: deviceInfo.device.type,
-        device_brand: deviceInfo.device.brand,
-        device_model: deviceInfo.device.model,
-        device_os: deviceInfo.os.name,
-        device_os_version: deviceInfo.os.version,
-        user_agent,
+      const refresh = await RefreshToken.findOne({
+        where: { user_id: user.id, device_id: device.id },
       });
 
-      return device;
+      if (!refresh)
+        throw errResponse("Refresh token ont found", 404, "refresh");
+
+      if (!(await bcrypt.compare(jwt_refresh, refresh.token))) {
+        throw errResponse("Invalid refresh token", 400, "jwt_refresh");
+      }
+
+      await refresh.destroy();
+
+      const { accessToken, refreshToken } =
+        await generateAccessAndRefreshTokens(
+          user,
+          device.id,
+          device.user_agent
+        );
+
+      setJwtRefreshCookie(res, refreshToken);
+
+      return accessToken;
     } catch (err) {
-      throw errResponse(err.message, err.status || 400, "device");
+      throw err;
+    }
+  }
+
+  async deleteUser(id) {
+    try {
+      return await UserRepository.deleteUser(id);
+    } catch (err) {
+      throw err;
+    }
+  }
+
+  async restoreDelete(id) {
+    try {
+      return await UserRepository.restoreUserFromDelete(id);
+    } catch (err) {
+      throw err;
+    }
+  }
+
+  async userLogout(user_id, user_agent, res) {
+    try {
+      const user = await UserRepository.getUserById(user_id);
+
+      if (user) {
+        const device = await Device.findOne({ where: { user_id, user_agent } });
+
+        if (!device)
+          throw errResponse(
+            "You're trying to access a device that's not registered to your account",
+            404,
+            "device"
+          );
+
+        await RefreshToken.destroy({
+          where: { user_id, device_id: device.id },
+        });
+
+        res.cookie("jwt_refresh", "", { maxAge: 1 });
+
+        return true;
+      }
+    } catch (err) {
+      throw err;
     }
   }
 }

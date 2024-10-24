@@ -1,14 +1,7 @@
 require("dotenv").config();
 
-const { User } = require("../../../models");
-const { RefreshToken } = require("../../../models");
-
 const asyncHandler = require("express-async-handler");
 const UserResource = require("../../../resources/UserResource");
-
-// get access and refresh tokens
-const generateAccessAndRefreshTokens = require("../../../middlewares/AuthMiddleware/generateAccessAndRefreshTokens");
-const setJwtRefreshCookie = require("../../../utils/auth/setJwtRefreshCookie");
 
 const UserService = require("../../../services/v1/UserService");
 const EmailService = require("../../../services/v1/EmailService");
@@ -16,16 +9,12 @@ const errResponse = require("../../../utils/error/errResponse");
 
 module.exports = {
   findAll: asyncHandler(async (req, res) => {
-    const users = await UserService.getAllUsers();
-    if (!users) throw errResponse("Users not found", 404, "user");
+    const users = await UserService.findUsers();
     return res.json(UserResource.collection(users));
   }),
 
   show: asyncHandler(async (req, res) => {
-    const { id } = req.params;
-
-    const user = await UserService.getUser(id);
-    if (!user) throw errResponse("User not found", 404, "user");
+    const user = await UserService.getUser(req.params.id);
     return res.json(new UserResource(user).exec());
   }),
 
@@ -50,43 +39,24 @@ module.exports = {
   login: asyncHandler(async (req, res) => {
     const { email, password } = req.body;
     const user_agent = req.headers["user-agent"];
-    const user = await UserService.login(email, password);
 
-    // if user email_verified_at has date
-    if (user.email_verified_at) {
-      const deviceId = await UserService.getDeviceId(user.id, user_agent);
+    const result = await UserService.login(email, password, user_agent, res);
 
-      const { accessToken, refreshToken } =
-        await generateAccessAndRefreshTokens(user, deviceId, user_agent);
-
-      setJwtRefreshCookie(res, refreshToken);
-
-      return res.json({ accessToken });
-    }
-
-    if (!user.email_verified_at) {
-      await EmailService.sendEmailVerificationLink(user);
-      return res.json({ msg: "Please verify your email" });
+    if (result.accessToken) {
+      return res.json({ accessToken: result.accessToken });
+    } else {
+      return res.json({
+        msg: "We sent verification link to your email. Please verify it first.",
+      });
     }
   }),
 
   refresh: asyncHandler(async (req, res) => {
-    const { jwt_refresh } = req.cookies;
-
-    if (!jwt_refresh) {
-      throw errResponse("Jwt refresh not found", 401, "jwt_refresh");
-    }
-
     try {
-      const refresh = await UserService.refreshToken(jwt_refresh);
-      const { accessToken, refreshToken } =
-        await generateAccessAndRefreshTokens(
-          refresh.user,
-          refresh.device.id,
-          refresh.device.user_agent
-        );
-
-      setJwtRefreshCookie(res, refreshToken);
+      const accessToken = await UserService.refreshToken(
+        req.cookies.jwt_refresh,
+        res
+      );
 
       return res.json({
         accessToken,
@@ -103,34 +73,20 @@ module.exports = {
   }),
 
   destroy: asyncHandler(async (req, res) => {
-    const { id } = req.params;
-    const result = await UserService.deleteUser(id);
-    if (!result) {
-      throw errResponse("User deleted failed", 400, "user");
-    }
+    await UserService.deleteUser(req.params.id);
     return res.json({ msg: "User deleted successfully" });
   }),
 
   restore: asyncHandler(async (req, res) => {
-    const { id } = req.params;
-
-    const result = await UserService.restoreDelete(id);
-
-    if (!result) throw errResponse("Restore delete failed", 400, "user");
-
+    await UserService.restoreDelete(req.params.id);
     return res.json({ msg: "User restored successfully" });
   }),
 
   logout: asyncHandler(async (req, res) => {
     const { user } = req;
+    const user_agent = req.headers["user-agent"];
 
-    const userExists = await User.findByPk(user.id);
-
-    if (!userExists) return res.status(404).json({ msg: "User not found" });
-
-    await RefreshToken.destroy({ where: { user_id: user.id } });
-
-    res.cookie("jwt_refresh", "", { maxAge: 1 });
+    await UserService.userLogout(user.id, user_agent, res);
 
     return res.json({ msg: "User logout successfully" });
   }),

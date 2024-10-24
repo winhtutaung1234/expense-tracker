@@ -51,7 +51,7 @@ class AccountRepository {
       throw errResponse("Account name cannot be duplicate", 400, "account");
 
     try {
-      await account.updateAccount(data);
+      await account.update(data);
 
       return account;
     } catch {
